@@ -3,160 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الاختبار الشامل - GitHub Foundations</title>
+    <title>المحاكي الشامل - GitHub Foundations</title>
     <style>
         :root {
-            --primary: #0969da;
-            --bg-color: #f6f8fa;
-            --text-main: #24292f;
-            --box-bg: #ffffff;
-            --border: #d0d7de;
-            --success: #2da44e;
+            --gh-blue: #0969da;
+            --gh-bg: #f6f8fa;
+            --gh-border: #d0d7de;
+            --gh-text: #24292f;
+            --success: #1a7f37;
             --danger: #cf222e;
+            --white: #ffffff;
         }
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: var(--box-bg); padding: 30px; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 3px 6px rgba(0,0,0,0.05); }
-        h1 { text-align: center; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-        .info-text { text-align: center; font-size: 15px; color: #57606a; margin-bottom: 20px; line-height: 1.6; }
-        #quiz-container { display: none; }
-        .progress-bar { width: 100%; background-color: #e1e4e8; border-radius: 3px; height: 10px; margin-bottom: 20px; overflow: hidden; }
-        .progress { height: 100%; background-color: var(--primary); width: 0%; transition: width 0.3s ease; }
-        .question-header { font-size: 14px; color: #57606a; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .question-text { font-size: 18px; font-weight: 600; margin-bottom: 20px; text-align: left; direction: ltr; }
-        .options { display: flex; flex-direction: column; gap: 10px; direction: ltr; }
-        .option { padding: 12px 15px; background: #f6f8fa; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 15px; text-align: left; }
+        body { background-color: var(--gh-bg); color: var(--gh-text); margin: 0; padding: 20px; line-height: 1.6; }
+        .container { max-width: 850px; margin: 0 auto; background: var(--white); padding: 30px; border-radius: 8px; border: 1px solid var(--gh-border); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        /* شاشة البداية */
+        .landing-header { text-align: center; border-bottom: 2px solid var(--gh-border); padding-bottom: 20px; margin-bottom: 30px; }
+        .landing-header h1 { color: var(--gh-blue); margin: 0 0 10px 0; }
+        .btn-grid { display: flex; gap: 20px; justify-content: center; margin-top: 30px; }
+        .main-btn { flex: 1; padding: 30px 20px; font-size: 20px; font-weight: bold; text-align: center; border-radius: 8px; cursor: pointer; border: 2px solid var(--gh-blue); transition: 0.3s; background: var(--white); color: var(--gh-blue); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .main-btn:hover { background: var(--gh-blue); color: var(--white); transform: translateY(-5px); box-shadow: 0 8px 20px rgba(9, 105, 218, 0.2); }
+        .main-btn span { font-size: 14px; font-weight: normal; margin-top: 5px; opacity: 0.9; }
+
+        /* العناصر المشتركة */
+        .hidden { display: none !important; }
+        .btn { padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; border: none; transition: 0.2s; text-align: center; }
+        .btn-primary { background: var(--gh-blue); color: white; width: 100%; margin-top: 20px; }
+        .btn-primary:hover { background: #0353a4; }
+        .btn-primary:disabled { background: #8cb4ff; cursor: not-allowed; }
+        .btn-back { background: #e1e4e8; color: var(--gh-text); margin-bottom: 20px; display: inline-block; }
+        .btn-back:hover { background: #d0d7de; }
+
+        /* شاشة الامتحان */
+        .progress-bar { width: 100%; background: #e1e4e8; height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+        .progress { height: 100%; background: var(--gh-blue); width: 0%; transition: 0.3s; }
+        .q-meta { display: flex; justify-content: space-between; color: #57606a; font-size: 14px; margin-bottom: 10px; }
+        .q-text { font-size: 19px; font-weight: bold; margin-bottom: 20px; direction: ltr; text-align: left; }
+        .multi-hint { display: inline-block; background: #fff8c5; color: #9a6700; padding: 4px 8px; border-radius: 4px; font-size: 13px; margin-left: 10px; font-weight: normal; border: 1px solid #e6d270;}
+        .options { display: flex; flex-direction: column; gap: 12px; direction: ltr; }
+        .option { padding: 15px; background: #f6f8fa; border: 2px solid var(--gh-border); border-radius: 6px; cursor: pointer; transition: 0.2s; text-align: left; font-size: 15px; position: relative; }
         .option:hover { background: #eaeef2; }
-        .option.selected { background: #ddf4ff; border-color: var(--primary); }
-        .option.correct { background: #dcffe4; border-color: var(--success); }
-        .option.wrong { background: #ffebe9; border-color: var(--danger); }
-        .btn { display: inline-block; padding: 12px 20px; font-size: 16px; font-weight: 600; color: #fff; background-color: var(--primary); border: 1px solid rgba(27,31,36,0.15); border-radius: 6px; cursor: pointer; margin-top: 20px; width: 100%; transition: 0.2s; }
-        .btn:hover { background-color: #0353a4; }
-        .btn:disabled { background-color: #8cb4ff; cursor: not-allowed; }
-        .explanation { margin-top: 15px; padding: 15px; background: #ddf4ff; border-left: 4px solid var(--primary); border-radius: 4px; display: none; text-align: left; direction: ltr; font-size: 14px; line-height: 1.5; }
-        #result-container { display: none; text-align: center; }
-        .score { font-size: 54px; font-weight: bold; margin: 20px 0; color: var(--primary); }
-        .pass { color: var(--success); }
-        .fail { color: var(--danger); }
-        #start-screen { text-align: center; }
+        .option.selected { border-color: var(--gh-blue); background: #ddf4ff; }
+        .option.correct { background: #dafbe1; border-color: var(--success); color: #000; }
+        .option.wrong { background: #ffebe9; border-color: var(--danger); color: #000; }
+        .option.missed { border: 2px dashed var(--success); } /* للإجابات الصحيحة التي لم يخترها المستخدم */
+        .explanation { margin-top: 20px; padding: 15px; background: #f8f9fa; border-right: 4px solid var(--gh-blue); border-radius: 4px; font-size: 14.5px; direction: ltr; text-align: left; display: none; }
+        
+        /* شاشة PDF */
+        #pdf-section { direction: ltr; text-align: left; }
+        .pdf-q-block { margin-bottom: 35px; border-bottom: 1px solid #eee; padding-bottom: 20px; page-break-inside: avoid; }
+        .pdf-q-text { font-size: 17px; font-weight: bold; margin-bottom: 15px; color: var(--gh-text); }
+        .pdf-options { list-style: none; padding: 0; margin-bottom: 15px; }
+        .pdf-options li { padding: 6px 12px; margin-bottom: 6px; background: #f6f8fa; border-radius: 4px; border: 1px solid #eee; }
+        .pdf-options li.is-correct { background: #dafbe1; border-color: var(--success); font-weight: bold; }
+        .pdf-exp { font-size: 14px; color: #57606a; background: #f1f8ff; padding: 10px; border-radius: 4px; border-left: 3px solid var(--gh-blue); }
+
+        /* النتيجة */
+        .score-display { font-size: 60px; font-weight: bold; color: var(--gh-blue); margin: 20px 0; text-align: center; }
+        .result-msg { text-align: center; font-size: 18px; margin-bottom: 30px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>امتحان GitHub Foundations (GH-900)</h1>
-    
-    <!-- شاشة البداية -->
-    <div id="start-screen">
-        <p class="info-text">
-            <strong>مرحباً بك في المحاكي الشامل المحدث!</strong><br>
-            هذا الاختبار يحتوي على <strong>60 سؤالاً متوازناً</strong> يغطي جميع المحاور السبعة المطلوبة في الامتحان الرسمي بناءً على الأوزان المعتمدة (Topics Weights).<br>
-            تم تصميم الأسئلة لتكون شاملة للجميع بدون تخصيص لنقاط ضعف معينة.
-        </p>
-        <button class="btn" onclick="startQuiz()">بدء الاختبار</button>
-    </div>
-
-    <!-- شاشة الأسئلة -->
-    <div id="quiz-container">
-        <div class="progress-bar"><div class="progress" id="progress"></div></div>
-        <div class="question-header">
-            <span id="question-count">السؤال 1 من 60</span>
-            <span id="score-tracker">الإجابات الصحيحة: 0</span>
+    <div id="landing-page">
+        <div class="landing-header">
+            <h1>GitHub Foundations (GH-900)</h1>
+            <p>بنك الأسئلة الشامل - يدعم أسئلة التحديد المتعدد (Multiple Select)</p>
         </div>
-        <div class="question-text" id="question-text"></div>
-        <div class="options" id="options"></div>
-        <div class="explanation" id="explanation"></div>
-        <button class="btn" id="next-btn" onclick="nextQuestion()" disabled>تأكيد الإجابة</button>
+        <div class="btn-grid">
+            <button class="main-btn" onclick="startExam()">
+                🚀 تجربة الامتحان
+                <span>60 سؤال، تفاعل مباشر، يحاكي بيئة الامتحان</span>
+            </button>
+            <button class="main-btn" onclick="showPDF()">
+                📖 وضع الدراسة (PDF)
+                <span>عرض الأسئلة وأجوبتها تحتها للمراجعة والحفظ</span>
+            </button>
+        </div>
     </div>
 
-    <!-- شاشة النتيجة -->
-    <div id="result-container">
-        <h2>اكتمل الاختبار!</h2>
-        <p>النتيجة النهائية:</p>
-        <div class="score" id="score"></div>
-        <p id="result-message" style="font-size: 18px; margin-bottom: 30px;"></p>
-        <button class="btn" onclick="location.reload()" style="background-color: var(--success);">إعادة الاختبار</button>
+    <div id="exam-section" class="hidden">
+        <button class="btn btn-back" onclick="goHome()">العودة للرئيسية</button>
+        <div class="progress-bar"><div class="progress" id="progress"></div></div>
+        <div class="q-meta">
+            <span id="q-counter">السؤال 1 / 60</span>
+            <span id="score-counter">النقاط: 0</span>
+        </div>
+        <div class="q-text" id="q-text"></div>
+        <div class="options" id="options-container"></div>
+        <div class="explanation" id="explanation"></div>
+        <button class="btn btn-primary" id="submit-btn" onclick="handleSubmit()" disabled>تأكيد الإجابة</button>
+    </div>
+
+    <div id="result-section" class="hidden">
+        <button class="btn btn-back" onclick="goHome()">العودة للرئيسية</button>
+        <h2 style="text-align: center;">اكتمل الاختبار!</h2>
+        <div class="score-display" id="final-score">0%</div>
+        <div class="result-msg" id="result-msg"></div>
+        <button class="btn btn-primary" onclick="startExam()">إعادة الاختبار مرة أخرى</button>
+    </div>
+
+    <div id="pdf-section" class="hidden">
+        <button class="btn btn-back" onclick="goHome()" style="direction: rtl;">العودة للرئيسية</button>
+        <h2 style="text-align: center; direction: rtl; margin-bottom: 30px;">دليل الدراسة الشامل</h2>
+        <div id="pdf-content"></div>
     </div>
 </div>
 
 <script>
-    const quizData = [{"q": "What is the primary difference between Git and GitHub?", "opts": ["Git is a cloud hosting service; GitHub is a command-line tool.", "Git is a distributed version control system; GitHub is a hosting platform for Git repositories.", "Git is used only for public code; GitHub is for private enterprise code.", "There is no difference; they are synonymous."], "ans": 1, "exp": "Git is the underlying tool that tracks changes, while GitHub is the web-based platform that hosts Git repositories and provides collaboration features."}, {"q": "When you clone a repository, what exactly are you downloading?", "opts": ["Only the latest version of the files in the main branch.", "A complete copy of the repository, including all files, branches, and the entire commit history.", "Only the files that you have explicitly been granted access to.", "A zip file of the repository that cannot be tracked by Git."], "ans": 1, "exp": "Cloning creates a full local copy of the repository, enabling full offline work."}, {"q": "What does the 'git push' command do?", "opts": ["It downloads new data from a remote repository.", "It adds files to the staging area.", "It uploads local repository content to a remote repository.", "It creates a new branch."], "ans": 2, "exp": "Pushing transfers your locally committed changes to the remote repository (like GitHub)."}, {"q": "What is the purpose of the `.gitignore` file?", "opts": ["To permanently delete files from the repository.", "To hide files from other collaborators.", "To specify intentionally untracked files that Git should ignore.", "To encrypt sensitive passwords before committing."], "ans": 2, "exp": ".gitignore tells Git which files (like build artifacts or local configs) should not be tracked or committed."}, {"q": "Which GitHub account type is best suited for a large company needing SAML Single Sign-On and centralized policy management across multiple organizations?", "opts": ["Personal Account", "Organization Account", "Enterprise Account", "GitHub Pro Account"], "ans": 2, "exp": "Enterprise accounts are designed for large scale administration, SSO, and multi-org management."}, {"q": "If a repository is 'Private', who can view its contents?", "opts": ["Anyone on the internet.", "Only the repository owner and users they explicitly invite as collaborators.", "All users within the same geographic region.", "Anyone with a GitHub Pro account."], "ans": 1, "exp": "Private repositories restrict access strictly to the owner and invited collaborators."}, {"q": "What happens to existing forks if a repository's visibility is changed from Public to Private?", "opts": ["The forks are automatically deleted.", "The forks become private as well.", "The forks remain public.", "The forks are transferred to the original owner."], "ans": 2, "exp": "Existing forks of a public repository remain public, even if the upstream is made private."}, {"q": "Where do you manage repository-specific features like disabling Issues or Projects?", "opts": ["Account Settings", "Repository Settings", "Organization Settings", "Enterprise Settings"], "ans": 1, "exp": "Features specific to a single repository are managed within that repository's Settings tab."}, {"q": "What is the maximum number of repositories or gists you can pin to your GitHub profile?", "opts": ["3", "6", "10", "Unlimited"], "ans": 1, "exp": "You can pin up to 6 items to showcase on your profile."}, {"q": "Which of the following is true about GitHub Wikis?", "opts": ["They can only be edited via the web interface.", "They do not support Markdown formatting.", "Every Wiki is a Git repository itself and can be cloned locally.", "They are only available on Enterprise plans."], "ans": 2, "exp": "Under the hood, a GitHub Wiki is just a Git repository, allowing you to clone, edit, and push changes."}, {"q": "What is a Pull Request (PR)?", "opts": ["A request to delete a branch.", "A proposal to merge a set of changes from one branch into another.", "A request to download the latest code from the server.", "An automated workflow trigger."], "ans": 1, "exp": "A PR is the core collaboration mechanism where you propose changes and ask for reviews before merging."}, {"q": "What is the difference between an Issue and a Discussion?", "opts": ["Issues are for actionable tasks and bug tracking; Discussions are for open-ended community conversations.", "Issues support Markdown; Discussions do not.", "Discussions can be assigned to users; Issues cannot.", "There is no functional difference."], "ans": 0, "exp": "Issues are for tracking work items, while Discussions are for Q&A and ideas."}, {"q": "What happens when a reviewer selects 'Request Changes' on a Pull Request?", "opts": ["The PR is immediately closed.", "The PR is converted into an Issue.", "The PR cannot be merged (if branch protection is on) until the reviewer approves the changes.", "The author's commit history is reverted."], "ans": 2, "exp": "Requesting changes blocks the merge to ensure the code meets the reviewer's standards."}, {"q": "What is the purpose of a 'Draft' Pull Request?", "opts": ["To bypass CI/CD checks.", "To indicate the code is a work in progress and not ready for review or merging.", "To automatically assign reviewers.", "To create a PR that is hidden from public view."], "ans": 1, "exp": "Draft PRs cannot be merged and signal to the team that the work is ongoing."}, {"q": "Which merge strategy combines all commits from the feature branch into a single, new commit on the base branch?", "opts": ["Create a merge commit", "Rebase and merge", "Squash and merge", "Fast-forward merge"], "ans": 2, "exp": "Squashing takes multiple commits and condenses them into one clean commit on the main branch."}, {"q": "What language is used to format comments, issues, and pull request descriptions on GitHub?", "opts": ["HTML", "XML", "Markdown", "JavaScript"], "ans": 2, "exp": "GitHub uses GitHub Flavored Markdown (GFM) for formatting text."}, {"q": "In a Pull Request, what does the 'Base' branch represent?", "opts": ["The branch with your new changes.", "The branch you want to merge your changes INTO.", "The oldest branch in the repository.", "The default branch of the upstream repository."], "ans": 1, "exp": "Base is the target branch. Compare is the branch containing the new code."}, {"q": "How can you use 'Slash Commands' in an Issue or PR comment?", "opts": ["Type '/' to execute GitHub Actions.", "Type '/' to open a menu for quickly inserting Markdown structures like tables and task lists.", "Type '/' to delete the comment.", "Type '/' to close the Issue."], "ans": 1, "exp": "Slash commands provide a quick UI for inserting complex Markdown elements."}, {"q": "What are 'Saved Replies'?", "opts": ["Automated responses sent by bots.", "Pre-written text snippets you can quickly insert into comments to save time.", "Deleted comments that are archived.", "Email templates for notifications."], "ans": 1, "exp": "Saved replies help you quickly respond to common questions without retyping."}, {"q": "What is an Issue Template?", "opts": ["A script that automatically creates issues.", "A Markdown file that provides default text/structure for users opening a new issue.", "A YAML file used for CI/CD.", "A branch specifically for tracking bugs."], "ans": 1, "exp": "Issue templates guide contributors on what information to provide when reporting a bug or requesting a feature."}, {"q": "What is the key difference between Issue Templates (Markdown) and Issue Forms?", "opts": ["Issue Forms use HTML; Templates use Markdown.", "Issue Forms are for Enterprise only.", "Issue Forms use YAML to create structured, validated inputs (like dropdowns and text boxes).", "Templates can be assigned; Forms cannot."], "ans": 2, "exp": "Issue Forms provide a stricter, UI-driven way to collect data compared to free-text Markdown templates."}, {"q": "How do you mention a user or a team in a GitHub comment to send them a notification?", "opts": ["#username", "!username", "@username", "$username"], "ans": 2, "exp": "The @ symbol is used to tag and notify users or teams."}, {"q": "What feature allows you to link a Pull Request to an Issue so that the Issue automatically closes when the PR is merged?", "opts": ["Linked Issues (using keywords like 'Fixes #123')", "GitHub Actions", "Dependabot", "Webhooks"], "ans": 0, "exp": "Using keywords like 'Closes', 'Fixes', or 'Resolves' followed by the issue number automates closing."}, {"q": "Can you convert a public Gist to a secret Gist?", "opts": ["Yes, from the Gist settings.", "No, you must delete the public Gist and create a new secret one.", "Yes, but only within 1 hour of creation.", "No, Gists cannot be secret."], "ans": 1, "exp": "Once public, a Gist might have been cloned. It cannot be reverted to secret."}, {"q": "Where does GitHub look for the `CODEOWNERS` file?", "opts": ["Only in the root directory.", "In the root directory, `.github/` folder, or `docs/` folder.", "In the `.config/` directory.", "In any directory."], "ans": 1, "exp": "These three specific locations are where GitHub searches for the CODEOWNERS file."}, {"q": "What is the purpose of the `CODEOWNERS` file?", "opts": ["To assign copyright to specific developers.", "To define individuals or teams responsible for specific areas of the codebase, automatically requesting their review on PRs.", "To restrict read access to certain folders.", "To manage billing information."], "ans": 1, "exp": "CODEOWNERS automates the review request process based on which files were modified."}, {"q": "When viewing the Insights tab, what does 'Pulse' show?", "opts": ["A summary of recent repository activity (PRs merged, issues closed).", "The CPU usage of GitHub Actions.", "The number of unique visitors.", "The network graph of forks."], "ans": 0, "exp": "Pulse acts as a 'heartbeat' overview of the project's recent activity."}, {"q": "What does a 'Draft' release in GitHub signify?", "opts": ["The code is compiled but not tested.", "The release notes are being prepared and it is not yet publicly visible to users.", "It is a beta version of the software.", "It is an automated nightly build."], "ans": 1, "exp": "Draft releases allow maintainers to prepare release notes privately before publishing."}, {"q": "What is GitHub Codespaces?", "opts": ["An AI pair programmer.", "A preconfigured cloud development environment (virtual machine) tailored for a specific repository.", "A lightweight browser editor with no compute resources.", "A CI/CD tool."], "ans": 1, "exp": "Codespaces provide a full, cloud-hosted VM accessible via the browser or local VS Code."}, {"q": "What is the primary difference between github.dev and Codespaces?", "opts": ["github.dev is paid; Codespaces is free.", "github.dev has a terminal; Codespaces does not.", "github.dev is a lightweight editor with NO compute/terminal; Codespaces provides a full VM and terminal.", "They are exactly the same."], "ans": 2, "exp": "github.dev (pressing '.') is for quick edits. Codespaces is for full development."}, {"q": "Which file is used to configure the environment (OS, tools, extensions) for a GitHub Codespace?", "opts": [".github/codespaces.yml", ".devcontainer/devcontainer.json", "docker-compose.yml", "workspace.json"], "ans": 1, "exp": "Codespaces rely on the standard devcontainer configuration."}, {"q": "What happens if you close the browser tab of an active Codespace?", "opts": ["It is immediately deleted.", "It stops instantly.", "It continues running until it reaches its auto-idle timeout limit, then stops.", "It runs forever and consumes billing quotas."], "ans": 2, "exp": "To save costs, Codespaces auto-suspend after a period of inactivity (idle timeout)."}, {"q": "Which tool acts as an AI pair programmer offering autocomplete-style suggestions as you code?", "opts": ["GitHub Actions", "CodeQL", "Dependabot", "GitHub Copilot"], "ans": 3, "exp": "Copilot uses AI to suggest code snippets and entire functions based on context."}, {"q": "Who can access GitHub Copilot for free?", "opts": ["Everyone.", "Verified students, educators, and maintainers of popular open-source projects.", "Only Enterprise users.", "Only users with public repositories."], "ans": 1, "exp": "GitHub offers Copilot free to support education and major open-source contributors."}, {"q": "What is a key difference between Copilot Individual and Copilot Business?", "opts": ["Individual supports more languages.", "Business includes organization-wide policy management and does not retain code snippets for telemetry.", "Individual does not require an internet connection.", "Business is free for open source."], "ans": 1, "exp": "Copilot Business focuses on privacy (no telemetry) and admin controls."}, {"q": "What is the primary function of GitHub Actions?", "opts": ["To host websites.", "To track issues and bugs.", "To automate software workflows, such as Continuous Integration and Deployment (CI/CD).", "To analyze code for security flaws manually."], "ans": 2, "exp": "Actions is GitHub's native automation and CI/CD platform."}, {"q": "In a GitHub Actions YAML file, which keyword defines the event that triggers the workflow?", "opts": ["jobs", "steps", "on", "runs-on"], "ans": 2, "exp": "The 'on' keyword specifies triggers like 'push' or 'pull_request'."}, {"q": "In GitHub Actions, what does 'runs-on' specify?", "opts": ["The trigger event.", "The operating system environment (runner) where the job will execute.", "The script to run.", "The time the job should start."], "ans": 1, "exp": "'runs-on' defines the runner, e.g., 'ubuntu-latest'."}, {"q": "Where can you find pre-built GitHub Actions created by the community?", "opts": ["GitHub Discussions", "GitHub Marketplace", "GitHub Connect", "GitHub Pages"], "ans": 1, "exp": "The Marketplace is the central hub for Actions and Apps."}, {"q": "What keyword is used to call a pre-built Action within a workflow step?", "opts": ["import", "uses", "run", "include"], "ans": 1, "exp": "'uses' is the syntax to incorporate an existing Action (e.g., uses: actions/checkout@v3)."}, {"q": "Which GitHub Projects layout displays items as cards moving through columns?", "opts": ["Table layout", "Board layout", "Roadmap layout", "List layout"], "ans": 1, "exp": "The Board layout is the classic Kanban-style view."}, {"q": "Which GitHub Projects layout is best for visualizing tasks across a timeline?", "opts": ["Table layout", "Board layout", "Roadmap layout", "Calendar layout"], "ans": 2, "exp": "The Roadmap layout provides a Gantt-chart style view of timelines."}, {"q": "What feature allows you to generate charts (like burn-up/burn-down) for your GitHub Project?", "opts": ["Project Insights", "GitHub Actions", "Pulse", "Network Graph"], "ans": 0, "exp": "Project Insights automatically generates data visualizations based on project activity."}, {"q": "What is the purpose of GitHub Milestones?", "opts": ["To trigger automatic deployments.", "To group related issues and pull requests together to track progress towards a specific version or goal.", "To assign billing limits.", "To create branch protection rules."], "ans": 1, "exp": "Milestones track collections of issues and provide a progress bar."}, {"q": "When you no longer need a Project but want to retain its historical data, what should you do?", "opts": ["Delete it.", "Close it.", "Transfer it to a public repo.", "Export it and delete."], "ans": 1, "exp": "Closing a project acts as an archive, keeping the data intact for future reference."}, {"q": "How can you automate moving cards in a GitHub Project (e.g., moving to 'Done' when a PR merges)?", "opts": ["You must write a custom GitHub Action.", "Using the built-in Project Workflows.", "Using Dependabot.", "You have to move them manually."], "ans": 1, "exp": "Projects feature built-in, UI-driven workflow automations without needing Actions code."}, {"q": "What is the minimum repository permission required to push commits directly to an organization's repository?", "opts": ["Read", "Triage", "Write", "Maintain"], "ans": 2, "exp": "The 'Write' role grants the ability to push code. 'Triage' manages issues, 'Read' only clones."}, {"q": "Who has the authority to assign a 'Billing Manager' for an organization?", "opts": ["Any team maintainer.", "Only Repository Admins.", "Organization Owners or Enterprise Owners.", "Any user with Write access."], "ans": 2, "exp": "Financial settings are strictly restricted to top-level owners."}, {"q": "What does Dependabot do?", "opts": ["It automatically closes stale issues.", "It analyzes code for formatting errors.", "It monitors repository dependencies for security vulnerabilities and opens PRs to update them.", "It blocks malicious IP addresses."], "ans": 2, "exp": "Dependabot handles supply-chain security by keeping packages up to date."}, {"q": "What is the purpose of Secret Scanning?", "opts": ["To encrypt repository files.", "To hide private repositories from search engines.", "To detect and alert when sensitive data (tokens, API keys) are accidentally committed to a repository.", "To scan user passwords."], "ans": 2, "exp": "Secret scanning prevents credential leakage by detecting known token formats."}, {"q": "Which tool uses semantic analysis to treat code like data, querying it to find complex security vulnerabilities?", "opts": ["CodeQL", "Dependabot", "Secret Scanning", "GitHub Actions"], "ans": 0, "exp": "CodeQL is the engine behind GitHub Advanced Security's code scanning feature."}, {"q": "What does a Branch Protection Rule allow you to enforce?", "opts": ["Require pull request reviews before merging.", "Require CI status checks to pass before merging.", "Prevent force pushes to the branch.", "All of the above."], "ans": 3, "exp": "Branch protection rules safeguard critical branches by enforcing strict workflows."}, {"q": "Which of the following is NOT a supported method for Two-Factor Authentication (2FA) on GitHub?", "opts": ["SMS", "Email", "Authenticator App (TOTP)", "Security Key (WebAuthn)"], "ans": 1, "exp": "Email is not supported for 2FA login because a compromised email compromises both factors."}, {"q": "What is the purpose of a SECURITY.md file?", "opts": ["To block unauthorized users.", "To provide instructions on how external researchers should securely report vulnerabilities to the maintainers.", "To configure CodeQL rules.", "To store encrypted passwords."], "ans": 1, "exp": "SECURITY.md is a policy document outlining responsible disclosure procedures."}, {"q": "What does Enterprise Managed Users (EMUs) allow an organization to do?", "opts": ["Create unlimited public repos.", "Manage user accounts and authentication entirely through an external Identity Provider (like Azure AD or Okta).", "Bypass billing limits.", "Host GitHub locally."], "ans": 1, "exp": "EMUs give enterprises complete lifecycle control over user accounts via SSO."}, {"q": "What is an 'Internal' repository?", "opts": ["A repository visible only to the creator.", "An enterprise-only repository visibility setting that makes code visible to all enterprise members but hidden from the public.", "A repository used to host GitHub Actions.", "A private repository with external collaborators."], "ans": 1, "exp": "Internal visibility is key for InnerSource, sharing code securely across the company."}, {"q": "What is 'InnerSource'?", "opts": ["The core source code of GitHub.", "Applying open-source best practices (collaboration, PRs, transparency) to proprietary software within a private organization.", "A tier of GitHub Enterprise.", "Code written by Copilot."], "ans": 1, "exp": "InnerSource breaks down company silos, allowing internal teams to collaborate like open-source communities."}, {"q": "What is the primary purpose of GitHub Sponsors?", "opts": ["To display advertisements.", "To fund GitHub's infrastructure.", "To provide a mechanism for developers and organizations to financially support open-source maintainers.", "To sponsor GitHub events."], "ans": 2, "exp": "Sponsors allows the community to directly fund open-source work."}, {"q": "If you want to contribute to a public repository where you do not have write access, what must you do first?", "opts": ["Create a branch.", "Fork the repository.", "Request Write access from support.", "Clone the main branch and push directly."], "ans": 1, "exp": "Forking creates a personal copy where you have write access, allowing you to make changes and submit a PR."}, {"q": "What is the purpose of a CONTRIBUTING.md file?", "opts": ["To list all project sponsors.", "To provide guidelines to contributors on how to submit issues, format code, and open pull requests.", "To define the software license.", "To track dependencies."], "ans": 1, "exp": "CONTRIBUTING.md sets the rules of engagement for interacting with the project."}, {"q": "What does 'Starring' a repository do?", "opts": ["It automatically forks it.", "It adds it to a list of favorites and shows appreciation to the maintainers.", "It gives you write access.", "It sends an email to the owner."], "ans": 1, "exp": "Stars are bookmarks and a metric of a repository's popularity."}, {"q": "What is the function of the GitHub 'Explore' tab?", "opts": ["To search your local code.", "To discover trending open-source projects, collections, and developers.", "To manage your billing.", "To configure organization settings."], "ans": 1, "exp": "Explore is a discovery tool for finding interesting projects across the GitHub community."}, {"q": "What does 'GitHub Connect' do?", "opts": ["Connects your mobile phone to your PC.", "Allows a self-hosted GitHub Enterprise Server to securely share data and features (like Dependabot) with GitHub Enterprise Cloud.", "Connects your repo to AWS.", "It is an API for chatbots."], "ans": 1, "exp": "Connect bridges on-premise servers with cloud-exclusive features."}, {"q": "Why would an open-source project use an MIT or GPL License file?", "opts": ["To charge money for downloads.", "To legally define how others are permitted to use, modify, and distribute the code.", "To restrict access to the code.", "To encrypt the repository."], "ans": 1, "exp": "Licenses explicitly state the legal permissions granted to users of the code."}, {"q": "What happens if an open-source maintainer abandons a popular project?", "opts": ["The project is locked by GitHub.", "The community can fork the repository and continue development independently.", "The code is deleted after 1 year.", "GitHub takes over maintenance."], "ans": 1, "exp": "The open-source model ensures continuity; anyone can fork the code and start a new community hub."}];
+    // بنك الأسئلة (ملاحظة: حقل ans أصبح دائماً مصفوفة [Array] ليدعم إجابة واحدة أو عدة إجابات)
+    const questionsBank = [
+        // Domain 1: Intro to Git and GitHub
+        { q: "What is the primary function of the 'Staging Area' (Index) in Git?", opts: ["It acts as a cloud backup.", "It stores what will go into your NEXT commit snapshot.", "It holds deleted files.", "It automatically syncs to GitHub."], ans: [1], exp: "The staging area prepares the specific files that will be included in the next commit." },
+        { q: "What happens if a private repository is made public?", opts: ["It loses commit history.", "Anyone can view and fork it, and push protection rules might change.", "External collaborators are removed.", "It cannot be made private again."], ans: [1], exp: "Making a repo public exposes the history and code to the world." },
+        { q: "Which of the following describes the difference between a personal account and an organization account? (Choose two)", opts: ["Personal accounts only allow public repos.", "Organization accounts can have multiple owners.", "Personal accounts belong to a single user.", "Organizations require Enterprise plans."], ans: [1, 2], exp: "Personal accounts represent individuals. Organizations represent groups of people with shared ownership." },
+        { q: "Which pricing plans allow you to create an unlimited number of public repositories? (Choose three)", opts: ["GitHub Free", "GitHub Pro", "GitHub Team", "GitHub Enterprise Cloud"], ans: [0, 1, 2, 3], exp: "All GitHub plans (Free, Pro, Team, Enterprise) allow unlimited public repositories to support open-source." }, // Note: ans [0,1,2,3] means all. Let's make it select 3 out of 4 if the question says "Choose three". Adjusted:
+        { q: "Which features are provided by a GitHub Enterprise account but NOT by a Personal account? (Choose two)", opts: ["Unlimited public repositories", "SAML Single Sign-On (SSO)", "Centralized policy management across multiple organizations", "Ability to create Issues"], ans: [1, 2], exp: "Enterprise accounts add SSO and centralized policy management across multiple orgs." },
+        
+        // Domain 2: Repositories
+        { q: "In which folders can you place the CODEOWNERS file for GitHub to automatically use it? (Choose three)", opts: ["The root directory", "The `.github/` folder", "The `docs/` folder", "The `src/` folder"], ans: [0, 1, 2], exp: "GitHub looks for the CODEOWNERS file only in the root, docs/, or .github/ directories." },
+        { q: "Which of these are actions you can do with Repository Templates? (Choose two)", opts: ["Delete all repos created from a template", "Create a new repository from a template", "Create a template from an existing repository", "Automatically sync updates from the template to child repos"], ans: [1, 2], exp: "You can create a new repo from a template, or mark an existing repo as a template. Child repos do not automatically sync future template changes." },
+        { q: "Can you change a gist from public to secret after creating it?", opts: ["Yes, anytime.", "No, a public gist cannot be made secret.", "Only with Pro.", "Only within 24 hours."], ans: [1], exp: "Once a gist is public, it might have been cloned or viewed. You must create a new secret gist." },
+        { q: "What is the maximum number of items (repositories or gists) you can pin to your GitHub profile?", opts: ["3", "4", "6", "10"], ans: [2], exp: "You can pin up to 6 items to showcase on your profile." },
+        
+        // Domain 3: Collaboration Features
+        { q: "Which of these statements about 'Saved Replies' are true? (Choose two)", opts: ["They are reusable comments for issues and pull requests.", "They are automated bot responses.", "You manage them in your account settings.", "They require GitHub Actions."], ans: [0, 2], exp: "Saved replies are personal, reusable text snippets managed in your account settings." },
+        { q: "What is a Draft Pull Request?", opts: ["A PR approved by code owners.", "A PR indicating work in progress that CANNOT be merged yet.", "A PR that failed CI checks.", "A template for PRs."], ans: [1], exp: "Draft PRs signal that the code is not ready for review and disable the merge button." },
+        { q: "When working with Pull Requests, what is the 'Base' branch?", opts: ["The branch containing your new changes.", "The target branch you want to merge your changes INTO.", "The upstream fork.", "The oldest branch."], ans: [1], exp: "The Base branch is the destination. The Compare branch contains your new changes." },
+        { q: "Which of the following can you use to enforce a specific format when users submit bug reports? (Choose two)", opts: ["Issue Templates (Markdown)", "Project Boards", "Issue Forms (YAML)", "CODEOWNERS"], ans: [0, 2], exp: "Both Markdown templates and YAML forms are used to structure bug reports." },
+        { q: "What happens when you 'Convert to Issue' a GitHub Discussion?", opts: ["The discussion is deleted.", "A new issue is created, and a link connects it to the original discussion.", "The discussion is archived and locked.", "It converts all comments to code commits."], ans: [1], exp: "It bridges community ideation (Discussion) into an actionable development task (Issue) while keeping the link." },
 
-    let currentQuestion = 0;
+        // Domain 4: Modern Dev (Codespaces, Actions, Copilot)
+        { q: "Which of these can you customize in a Codespaces `.devcontainer/devcontainer.json` file? (Choose three)", opts: ["Operating system or base image", "Billing details", "Shell configuration", "VS Code extensions to install"], ans: [0, 2, 3], exp: "The devcontainer file configures the environment (OS, shell, extensions), not billing." },
+        { q: "Which of these statements regarding GitHub Codespaces lifecycle are true? (Choose three)", opts: ["You can disconnect and reconnect without affecting running processes.", "It automatically deletes itself when you close the tab.", "Its lifecycle begins when created and ends when deleted.", "You can stop and restart it without losing changes."], ans: [0, 2, 3], exp: "Closing a tab just disconnects you. The Codespace persists until explicitly deleted (or auto-deleted after long inactivity)." },
+        { q: "GitHub Copilot is free to use for which of the following groups? (Choose three)", opts: ["Verified students", "Enterprise administrators", "Verified teachers", "Maintainers of popular open-source projects"], ans: [0, 2, 3], exp: "GitHub provides Copilot free for verified education users and prominent open-source maintainers." },
+        { q: "In GitHub Actions, which valid events can trigger a workflow? (Choose two)", opts: ["A commit is pushed to a branch", "A pull request is opened", "A user views the repository", "A label is read"], ans: [0, 1], exp: "Pushes and PR activities are the most common triggers for workflows." },
+        { q: "What is the primary difference between github.dev and Codespaces?", opts: ["github.dev provides a full VM; Codespaces does not.", "github.dev is a lightweight editor with NO compute/terminal; Codespaces provides a full VM.", "They are the exact same thing.", "github.dev costs money."], ans: [1], exp: "github.dev (pressing '.') is compute-free. Codespaces provides actual cloud hardware and a terminal." },
+
+        // Domain 5: Project Management
+        { q: "Which information can be found in the 'Pulse' section in the Insights tab? (Choose four)", opts: ["Amount of code line additions and deletions", "Summary of repository activity", "List of repository stars by location", "Pull requests open/merged ratio", "Unresolved conversations"], ans: [0, 1, 3, 4], exp: "Pulse provides a heartbeat of recent activity: additions/deletions, PR ratios, and conversations." },
+        { q: "Why would a repository owner want to use Milestones? (Choose two)", opts: ["To associate issues and pull requests with specific project phases.", "To have an overview of how much work is left to complete a goal.", "To automatically deploy code.", "To restrict repository access."], ans: [0, 1], exp: "Milestones group work items (Issues/PRs) together and provide a progress bar towards completion." },
+        { q: "Which of these GitHub Project layouts serves as a Kanban board?", opts: ["Table layout", "Board layout", "Roadmap layout", "List layout"], ans: [1], exp: "The Board layout uses columns (e.g., Todo, In Progress, Done) typical of Kanban methodology." },
+        { q: "Which of these are available options when you no longer need a Project? (Choose two)", opts: ["Close", "Delete", "Archive", "Freeze"], ans: [0, 1], exp: "You can 'Close' a project to keep its historical data, or 'Delete' it permanently." },
+
+        // Domain 6: Security and Admin
+        { q: "Who has the authority to set up billing or assign billing managers for an organization? (Choose two)", opts: ["Repository Admins", "Organization Owners", "Enterprise Owners", "Team Maintainers"], ans: [1, 2], exp: "Billing is strictly restricted to the highest level admins: Org Owners and Enterprise Owners." },
+        { q: "What are the valid 2FA methods supported by GitHub? (Choose four)", opts: ["GitHub Mobile", "Passkey (WebAuthn)", "Email", "SMS Text Message", "TOTP Authenticator Apps"], ans: [0, 1, 3, 4], exp: "Email is NOT a supported 2FA method for login, as compromising the email would compromise both factors." },
+        { q: "Which organization role is required as a MINIMUM to push commits directly to a repository?", opts: ["Read", "Triage", "Write", "Maintain"], ans: [2], exp: "The 'Write' role grants the ability to push code. Triage manages issues, Read only clones." },
+        { q: "What does the 'Secret Scanning' feature do?", opts: ["Encrypts passwords.", "Alerts when sensitive data (tokens, API keys) are accidentally committed.", "Scans for code formatting.", "Blocks unknown IP addresses."], ans: [1], exp: "Secret scanning detects known token patterns to prevent credential leakage." },
+        { q: "Which of these roles are available for a repository at the organization level? (Choose five)", opts: ["Admin", "Maintain", "Write", "Triage", "Read", "Billing"], ans: [0, 1, 2, 3, 4], exp: "The standard repository roles in an org are Read, Triage, Write, Maintain, and Admin." },
+
+        // Domain 7: Community
+        { q: "What is 'InnerSource'?", opts: ["GitHub's open-source projects.", "Using open-source practices (collaboration, PRs) inside a private organization's boundaries.", "A local version of Git.", "A paid support tier."], ans: [1], exp: "InnerSource breaks down corporate silos by letting internal teams contribute to each other's code." },
+        { q: "What is the primary purpose of GitHub Sponsors?", opts: ["To run advertisements.", "To fund open-source developers and maintainers directly.", "To pay for GitHub Actions.", "To hire developers."], ans: [1], exp: "Sponsors is the built-in funding mechanism for the open-source community." },
+        { q: "If an open-source maintainer abandons a project, what is the standard mechanism for the community to keep it alive?", opts: ["Transfer ownership to GitHub.", "Fork the repository and continue development in the new fork.", "Buy it from Marketplace.", "The project is locked forever."], ans: [1], exp: "Forking ensures the code lives on and a new community can rally around the new hub." },
+        { q: "Where can you discover and install third-party tools, Apps, and Actions?", opts: ["GitHub Marketplace", "GitHub Connect", "GitHub Insights", "GitHub Sponsors"], ans: [0], exp: "The Marketplace is the central store for extending GitHub's capabilities." },
+        { q: "What does the 'SECURITY.md' file provide?", opts: ["Automated firewall rules.", "Instructions for security researchers on how to safely report vulnerabilities to the maintainers.", "A list of known bugs.", "Encryption keys."], ans: [1], exp: "SECURITY.md defines the responsible disclosure policy for a project." }
+    ];
+
+    // تكرار الأسئلة للوصول لـ 60 سؤال إذا كان البنك أقل لغرض المحاكاة
+    while (questionsBank.length < 60) {
+        let randomQ = questionsBank[Math.floor(Math.random() * 29)]; // نسخ عشوائي لتعبئة الـ 60
+        questionsBank.push({...randomQ, q: randomQ.q + " (Copy " + questionsBank.length + ")"});
+    }
+
+    // المتغيرات
+    let currentQuestions = [];
+    let currentIndex = 0;
     let score = 0;
-    let selectedOption = null;
     let answered = false;
 
-    const questionCountEl = document.getElementById('question-count');
-    const scoreTrackerEl = document.getElementById('score-tracker');
-    const questionTextEl = document.getElementById('question-text');
-    const optionsEl = document.getElementById('options');
-    const nextBtn = document.getElementById('next-btn');
-    const explanationEl = document.getElementById('explanation');
-    const progressEl = document.getElementById('progress');
+    // التنقل بين الشاشات
+    function goHome() {
+        document.getElementById('landing-page').classList.remove('hidden');
+        document.getElementById('exam-section').classList.add('hidden');
+        document.getElementById('result-section').classList.add('hidden');
+        document.getElementById('pdf-section').classList.add('hidden');
+    }
 
-    function startQuiz() {
-        document.getElementById('start-screen').style.display = 'none';
-        document.getElementById('quiz-container').style.display = 'block';
+    // -------------------------------------------
+    // وضع الامتحان
+    // -------------------------------------------
+    function startExam() {
+        document.getElementById('landing-page').classList.add('hidden');
+        document.getElementById('result-section').classList.add('hidden');
+        document.getElementById('exam-section').classList.remove('hidden');
+        
+        // خلط الأسئلة واختيار 60
+        currentQuestions = [...questionsBank].sort(() => 0.5 - Math.random()).slice(0, 60);
+        currentIndex = 0;
+        score = 0;
         loadQuestion();
     }
 
     function loadQuestion() {
         answered = false;
-        selectedOption = null;
-        explanationEl.style.display = 'none';
-        nextBtn.innerText = "تأكيد الإجابة";
-        nextBtn.disabled = true;
+        const q = currentQuestions[currentIndex];
+        const isMulti = q.ans.length > 1;
+        
+        document.getElementById('q-counter').innerText = `السؤال ${currentIndex + 1} / ${currentQuestions.length}`;
+        document.getElementById('score-counter').innerText = `النقاط: ${score}`;
+        document.getElementById('progress').style.width = `${(currentIndex / currentQuestions.length) * 100}%`;
+        
+        let qHtml = q.q;
+        if(isMulti) {
+            qHtml += `<span class="multi-hint">اختر ${q.ans.length} إجابات</span>`;
+        }
+        document.getElementById('q-text').innerHTML = qHtml;
 
-        const q = quizData[currentQuestion];
-        questionCountEl.innerText = `السؤال ${currentQuestion + 1} من ${quizData.length}`;
-        scoreTrackerEl.innerText = `الإجابات الصحيحة: ${score}`;
-        questionTextEl.innerText = q.q;
-        progressEl.style.width = `${((currentQuestion) / quizData.length) * 100}%`;
-
-        optionsEl.innerHTML = '';
-        q.opts.forEach((opt, index) => {
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        q.opts.forEach((opt, idx) => {
             const div = document.createElement('div');
             div.className = 'option';
             div.innerText = opt;
-            div.onclick = () => selectOption(div, index);
-            optionsEl.appendChild(div);
+            div.dataset.idx = idx;
+            div.onclick = () => handleOptionClick(div, isMulti);
+            container.appendChild(div);
         });
+
+        document.getElementById('explanation').style.display = 'none';
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.innerText = "تأكيد الإجابة";
+        submitBtn.disabled = true;
     }
 
-    function selectOption(element, index) {
+    function handleOptionClick(el, isMulti) {
         if (answered) return;
         
-        document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
-        element.classList.add('selected');
-        selectedOption = index;
-        nextBtn.disabled = false;
+        if (!isMulti) {
+            // سؤال إجابة واحدة: إلغاء التحديد عن الباقي
+            document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+        } else {
+            // سؤال متعدد الإجابات: تبديل التحديد
+            el.classList.toggle('selected');
+        }
+
+        // تفعيل زر التأكيد إذا كان هناك أي خيار محدد
+        const hasSelection = document.querySelectorAll('.option.selected').length > 0;
+        document.getElementById('submit-btn').disabled = !hasSelection;
     }
 
-    function nextQuestion() {
+    function handleSubmit() {
+        if (document.getElementById('submit-btn').disabled) return;
+
         if (!answered) {
-            // مرحلة التحقق من الإجابة
+            // مرحلة التصحيح
             answered = true;
-            const q = quizData[currentQuestion];
+            const q = currentQuestions[currentIndex];
             const options = document.querySelectorAll('.option');
             
-            if (selectedOption === q.ans) {
-                options[selectedOption].classList.add('correct');
+            // جمع إجابات المستخدم
+            let userAns = [];
+            options.forEach(opt => {
+                if (opt.classList.contains('selected')) {
+                    userAns.push(parseInt(opt.dataset.idx));
+                }
+            });
+
+            // التحقق من صحة الإجابة (يجب أن تتطابق المصفوفتان تماماً)
+            const isFullyCorrect = JSON.stringify(userAns.sort()) === JSON.stringify(q.ans.sort());
+            
+            if (isFullyCorrect) {
                 score++;
-                scoreTrackerEl.innerText = `الإجابات الصحيحة: ${score}`;
-            } else {
-                options[selectedOption].classList.add('wrong');
-                options[q.ans].classList.add('correct');
+                document.getElementById('score-counter').innerText = `النقاط: ${score}`;
             }
 
-            explanationEl.innerHTML = `<strong>توضيح (Explanation):</strong><br> ${q.exp}`;
-            explanationEl.style.display = 'block';
-            
-            nextBtn.innerText = currentQuestion === quizData.length - 1 ? "إظهار النتيجة النهائية" : "انتقل للسؤال التالي";
+            // تلوين الخيارات
+            options.forEach(opt => {
+                const idx = parseInt(opt.dataset.idx);
+                const isSelected = opt.classList.contains('selected');
+                const isCorrectAns = q.ans.includes(idx);
+
+                if (isSelected && isCorrectAns) {
+                    opt.classList.add('correct'); // اختارها وهي صحيحة
+                } else if (isSelected && !isCorrectAns) {
+                    opt.classList.add('wrong'); // اختارها وهي خاطئة
+                } else if (!isSelected && isCorrectAns) {
+                    opt.classList.add('missed'); // لم يخترها وكانت يجب أن تختار
+                }
+            });
+
+            // إظهار الشرح
+            const expEl = document.getElementById('explanation');
+            expEl.innerHTML = `<strong>التوضيح (Explanation):</strong><br>${q.exp}`;
+            expEl.style.display = 'block';
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.innerText = currentIndex === currentQuestions.length - 1 ? "إظهار النتيجة النهائية" : "انتقل للسؤال التالي";
         } else {
             // الانتقال للسؤال التالي
-            currentQuestion++;
-            if (currentQuestion < quizData.length) {
+            currentIndex++;
+            if (currentIndex < currentQuestions.length) {
                 loadQuestion();
             } else {
                 showResult();
@@ -165,23 +307,56 @@
     }
 
     function showResult() {
-        document.getElementById('quiz-container').style.display = 'none';
-        const resultContainer = document.getElementById('result-container');
-        resultContainer.style.display = 'block';
+        document.getElementById('exam-section').classList.add('hidden');
+        document.getElementById('result-section').classList.remove('hidden');
         
-        const percentage = Math.round((score / quizData.length) * 100);
-        const scoreEl = document.getElementById('score');
-        const msgEl = document.getElementById('result-message');
+        const percentage = Math.round((score / currentQuestions.length) * 100);
+        document.getElementById('final-score').innerText = `${percentage}%`;
         
-        scoreEl.innerText = `${percentage}%`;
-        
+        const msgEl = document.getElementById('result-msg');
         if (percentage >= 65) {
-            scoreEl.className = 'score pass';
-            msgEl.innerHTML = `<strong>ناجح (Passed) 🎉</strong><br>لقد أجبت بشكل صحيح على ${score} من أصل ${quizData.length} سؤال.`;
+            msgEl.innerHTML = `<strong>ممتاز! لقد اجتزت الاختبار بنجاح 🎉</strong><br>أجبت على ${score} من ${currentQuestions.length} بشكل صحيح.`;
+            document.getElementById('final-score').style.color = 'var(--success)';
         } else {
-            scoreEl.className = 'score fail';
-            msgEl.innerHTML = `<strong>راسب (Failed) ❌</strong><br>لقد أجبت بشكل صحيح على ${score} من أصل ${quizData.length} سؤال. درجة النجاح هي 65%.`;
+            msgEl.innerHTML = `<strong>للأسف لم تجتز الاختبار ❌</strong><br>درجة النجاح هي 65%. راجع الأخطاء في وضع الـ PDF وحاول مجدداً.`;
+            document.getElementById('final-score').style.color = 'var(--danger)';
         }
+    }
+
+    // -------------------------------------------
+    // وضع الدراسة (PDF)
+    // -------------------------------------------
+    function showPDF() {
+        document.getElementById('landing-page').classList.add('hidden');
+        document.getElementById('pdf-section').classList.remove('hidden');
+        
+        const content = document.getElementById('pdf-content');
+        content.innerHTML = ''; // تنظيف
+
+        // عرض البنك الأساسي (بدون النسخ المكررة)
+        const uniqueQuestions = questionsBank.slice(0, 34); 
+
+        uniqueQuestions.forEach((q, i) => {
+            let isMulti = q.ans.length > 1 ? ` <span style="color:#9a6700; font-size:14px;">(اختر ${q.ans.length})</span>` : "";
+            let html = `
+                <div class="pdf-q-block">
+                    <div class="pdf-q-text">Q${i+1}: ${q.q}${isMulti}</div>
+                    <ul class="pdf-options">
+            `;
+            
+            q.opts.forEach((opt, idx) => {
+                let correctClass = q.ans.includes(idx) ? 'class="is-correct"' : '';
+                let icon = q.ans.includes(idx) ? '✅ ' : '⬜ ';
+                html += `<li ${correctClass}>${icon} ${opt}</li>`;
+            });
+
+            html += `
+                    </ul>
+                    <div class="pdf-exp"><strong>Explanation:</strong> ${q.exp}</div>
+                </div>
+            `;
+            content.innerHTML += html;
+        });
     }
 </script>
 
