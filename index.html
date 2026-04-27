@@ -34,6 +34,12 @@
         .btn-primary:disabled { background: #8cb4ff; cursor: not-allowed; }
         .btn-back { background: #e1e4e8; color: var(--gh-text); margin-bottom: 20px; display: inline-block; }
         .btn-back:hover { background: #d0d7de; }
+        
+        /* أزرار التنقل السريع */
+        .nav-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 10px; }
+        .btn-nav { background: #f6f8fa; border: 1px solid var(--gh-border); color: var(--gh-text); padding: 10px 15px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: bold; flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px;}
+        .btn-nav:hover:not(:disabled) { background: #eaeef2; border-color: #8c959f; }
+        .btn-nav:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* شاشة الامتحان */
         .progress-bar { width: 100%; background: #e1e4e8; height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
@@ -70,12 +76,12 @@
     <div id="landing-page">
         <div class="landing-header">
             <h1>GitHub Foundations (GH-900)</h1>
-            <p>تم إزالة التكرار: يحتوي البنك الآن على 60 سؤالاً حصرياً ومختلفاً بالكامل.</p>
+            <p>تم إضافة أزرار التنقل السريع: يمكنك الآن الرجوع للأسئلة السابقة.</p>
         </div>
         <div class="btn-grid">
             <button class="main-btn" onclick="startExam()">
                 🚀 تجربة الامتحان
-                <span>60 سؤال، تفاعل مباشر، يدعم Multi-Select</span>
+                <span>60 سؤال، تفاعل مباشر، يدعم التنقل (السابق/التالي)</span>
             </button>
             <button class="main-btn" onclick="showPDF()">
                 📖 وضع الدراسة (PDF)
@@ -89,12 +95,21 @@
         <div class="progress-bar"><div class="progress" id="progress"></div></div>
         <div class="q-meta">
             <span id="q-counter">السؤال 1 / 60</span>
-            <span id="score-counter">النقاط: 0</span>
+            <span id="score-counter" style="display:none;">النقاط: 0</span>
         </div>
         <div class="q-text" id="q-text"></div>
         <div class="options" id="options-container"></div>
         <div class="explanation" id="explanation"></div>
-        <button class="btn btn-primary" id="submit-btn" onclick="handleSubmit()" disabled>تأكيد الإجابة</button>
+        
+        <div class="nav-controls">
+            <button class="btn-nav" id="prev-btn" onclick="goPrev()"><span>➡</span> السؤال السابق</button>
+            <button class="btn btn-primary" id="submit-btn" onclick="handleSubmit()" disabled style="margin-top:0; flex: 2;">تأكيد الإجابة</button>
+            <button class="btn-nav" id="next-btn" onclick="goNext()">السؤال التالي <span>⬅</span></button>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn btn-back" id="finish-btn" onclick="showResult()" style="background-color: var(--danger); color: white; display: none;">إنهاء الاختبار وإظهار النتيجة</button>
+        </div>
     </div>
 
     <div id="result-section" class="hidden">
@@ -113,12 +128,83 @@
 </div>
 
 <script>
-    const questionsBank = [{"q": "What is the primary function of the 'Staging Area' (Index) in Git?", "opts": ["It acts as a cloud backup.", "It stores what will go into your NEXT commit snapshot.", "It holds deleted files.", "It automatically syncs to GitHub."], "ans": [1], "exp": "The staging area prepares the specific files that will be included in the next commit."}, {"q": "What happens if a private repository is made public?", "opts": ["It loses commit history.", "Anyone can view and fork it, and push protection rules might change.", "External collaborators are removed.", "It cannot be made private again."], "ans": [1], "exp": "Making a repo public exposes the history and code to the world."}, {"q": "Which of the following describes the difference between a personal account and an organization account? (Choose two)", "opts": ["Personal accounts only allow public repos.", "Organization accounts can have multiple owners.", "Personal accounts belong to a single user.", "Organizations require Enterprise plans."], "ans": [1, 2], "exp": "Personal accounts represent individuals. Organizations represent groups of people with shared ownership."}, {"q": "Which pricing plans allow you to create an unlimited number of public repositories? (Choose three)", "opts": ["GitHub Free", "GitHub Pro", "GitHub Team", "GitHub Enterprise Cloud"], "ans": [0, 1, 2], "exp": "Actually, ALL plans allow unlimited public repositories. For this question context, Free, Pro, and Team are valid selections. Enterprise Cloud also allows it."}, {"q": "Which features are provided by a GitHub Enterprise account but NOT by a Personal account? (Choose two)", "opts": ["Unlimited public repositories", "SAML Single Sign-On (SSO)", "Centralized policy management across multiple organizations", "Ability to create Issues"], "ans": [1, 2], "exp": "Enterprise accounts add SSO and centralized policy management across multiple orgs."}, {"q": "What is the primary difference between Git and GitHub?", "opts": ["Git is a cloud hosting service; GitHub is a command-line tool.", "Git is a distributed version control system; GitHub is a hosting platform for Git repositories.", "Git is used only for public code; GitHub is for private enterprise code.", "There is no difference; they are synonymous."], "ans": [1], "exp": "Git tracks changes locally, while GitHub hosts those repositories in the cloud."}, {"q": "When you clone a repository, what exactly are you downloading?", "opts": ["Only the latest version of the files in the main branch.", "A complete copy of the repository, including all files, branches, and the entire commit history.", "Only the files that you have explicitly been granted access to.", "A zip file of the repository that cannot be tracked by Git."], "ans": [1], "exp": "Cloning creates a full local copy of the repository, enabling full offline work."}, {"q": "What does the 'git push' command do?", "opts": ["It downloads new data from a remote repository.", "It adds files to the staging area.", "It uploads local repository content to a remote repository.", "It creates a new branch."], "ans": [2], "exp": "Pushing transfers your locally committed changes to the remote repository (like GitHub)."}, {"q": "What is the purpose of the `.gitignore` file?", "opts": ["To permanently delete files from the repository.", "To hide files from other collaborators.", "To specify intentionally untracked files that Git should ignore.", "To encrypt sensitive passwords before committing."], "ans": [2], "exp": ".gitignore tells Git which files (like build artifacts or local configs) should not be tracked or committed."}, {"q": "In which folders can you place the CODEOWNERS file for GitHub to automatically use it? (Choose three)", "opts": ["The root directory", "The `.github/` folder", "The `docs/` folder", "The `src/` folder"], "ans": [0, 1, 2], "exp": "GitHub looks for the CODEOWNERS file only in the root, docs/, or .github/ directories."}, {"q": "Which of these are actions you can do with Repository Templates? (Choose two)", "opts": ["Delete all repos created from a template", "Create a new repository from a template", "Create a template from an existing repository", "Automatically sync updates from the template to child repos"], "ans": [1, 2], "exp": "You can create a new repo from a template, or mark an existing repo as a template."}, {"q": "Can you change a gist from public to secret after creating it?", "opts": ["Yes, anytime.", "No, a public gist cannot be made secret.", "Only with Pro.", "Only within 24 hours."], "ans": [1], "exp": "Once a gist is public, it might have been cloned or viewed. You must create a new secret gist."}, {"q": "What is the maximum number of items (repositories or gists) you can pin to your GitHub profile?", "opts": ["3", "4", "6", "10"], "ans": [2], "exp": "You can pin up to 6 items to showcase on your profile."}, {"q": "If a repository is 'Private', who can view its contents?", "opts": ["Anyone on the internet.", "Only the repository owner and users they explicitly invite as collaborators.", "All users within the same geographic region.", "Anyone with a GitHub Pro account."], "ans": [1], "exp": "Private repositories restrict access strictly to the owner and invited collaborators."}, {"q": "Where do you manage repository-specific features like disabling Issues or Projects?", "opts": ["Account Settings", "Repository Settings", "Organization Settings", "Enterprise Settings"], "ans": [1], "exp": "Features specific to a single repository are managed within that repository's Settings tab."}, {"q": "Which of the following is true about GitHub Wikis?", "opts": ["They can only be edited via the web interface.", "They do not support Markdown formatting.", "Every Wiki is a Git repository itself and can be cloned locally.", "They are only available on Enterprise plans."], "ans": [2], "exp": "Under the hood, a GitHub Wiki is just a Git repository, allowing you to clone, edit, and push changes."}, {"q": "Which of these statements about 'Saved Replies' are true? (Choose two)", "opts": ["They are reusable comments for issues and pull requests.", "They are automated bot responses.", "You manage them in your account settings.", "They require GitHub Actions."], "ans": [0, 2], "exp": "Saved replies are personal, reusable text snippets managed in your account settings."}, {"q": "What is a Draft Pull Request?", "opts": ["A PR approved by code owners.", "A PR indicating work in progress that CANNOT be merged yet.", "A PR that failed CI checks.", "A template for PRs."], "ans": [1], "exp": "Draft PRs signal that the code is not ready for review and disable the merge button."}, {"q": "When working with Pull Requests, what is the 'Base' branch?", "opts": ["The branch containing your new changes.", "The target branch you want to merge your changes INTO.", "The upstream fork.", "The oldest branch."], "ans": [1], "exp": "The Base branch is the destination. The Compare branch contains your new changes."}, {"q": "Which of the following can you use to enforce a specific format when users submit bug reports? (Choose two)", "opts": ["Issue Templates (Markdown)", "Project Boards", "Issue Forms (YAML)", "CODEOWNERS"], "ans": [0, 2], "exp": "Both Markdown templates and YAML forms are used to structure bug reports."}, {"q": "What happens when you 'Convert to Issue' a GitHub Discussion?", "opts": ["The discussion is deleted.", "A new issue is created, and a link connects it to the original discussion.", "The discussion is archived and locked.", "It converts all comments to code commits."], "ans": [1], "exp": "It bridges community ideation into an actionable development task while keeping the link."}, {"q": "What is the difference between an Issue and a Discussion?", "opts": ["Issues are for actionable tasks and bug tracking; Discussions are for open-ended community conversations.", "Issues support Markdown; Discussions do not.", "Discussions can be assigned to users; Issues cannot.", "There is no functional difference."], "ans": [0], "exp": "Issues are for tracking work items, while Discussions are for Q&A and ideas."}, {"q": "What happens when a reviewer selects 'Request Changes' on a Pull Request?", "opts": ["The PR is immediately closed.", "The PR is converted into an Issue.", "The PR cannot be merged (if branch protection is on) until the reviewer approves the changes.", "The author's commit history is reverted."], "ans": [2], "exp": "Requesting changes blocks the merge to ensure the code meets the reviewer's standards."}, {"q": "Which merge strategy combines all commits from the feature branch into a single, new commit on the base branch?", "opts": ["Create a merge commit", "Rebase and merge", "Squash and merge", "Fast-forward merge"], "ans": [2], "exp": "Squashing takes multiple commits and condenses them into one clean commit on the main branch."}, {"q": "How can you use 'Slash Commands' in an Issue or PR comment?", "opts": ["Type '/' to execute GitHub Actions.", "Type '/' to open a menu for quickly inserting Markdown structures like tables and task lists.", "Type '/' to delete the comment.", "Type '/' to close the Issue."], "ans": [1], "exp": "Slash commands provide a quick UI for inserting complex Markdown elements."}, {"q": "What is an Issue Template?", "opts": ["A script that automatically creates issues.", "A Markdown file that provides default text/structure for users opening a new issue.", "A YAML file used for CI/CD.", "A branch specifically for tracking bugs."], "ans": [1], "exp": "Issue templates guide contributors on what information to provide when reporting a bug or requesting a feature."}, {"q": "How do you mention a user or a team in a GitHub comment to send them a notification?", "opts": ["#username", "!username", "@username", "$username"], "ans": [2], "exp": "The @ symbol is used to tag and notify users or teams."}, {"q": "What feature allows you to link a Pull Request to an Issue so that the Issue automatically closes when the PR is merged?", "opts": ["Using keywords like 'Fixes #123' in the PR description.", "GitHub Actions", "Dependabot", "Webhooks"], "ans": [0], "exp": "Using keywords like 'Closes', 'Fixes', or 'Resolves' followed by the issue number automates closing."}, {"q": "What does a 'Draft' release in GitHub signify?", "opts": ["The code is compiled but not tested.", "The release notes are being prepared and it is not yet publicly visible to users.", "It is a beta version of the software.", "It is an automated nightly build."], "ans": [1], "exp": "Draft releases allow maintainers to prepare release notes privately before publishing."}, {"q": "Which of these can you customize in a Codespaces `.devcontainer/devcontainer.json` file? (Choose three)", "opts": ["Operating system or base image", "Billing details", "Shell configuration", "VS Code extensions to install"], "ans": [0, 2, 3], "exp": "The devcontainer file configures the environment (OS, shell, extensions), not billing."}, {"q": "Which of these statements regarding GitHub Codespaces lifecycle are true? (Choose three)", "opts": ["You can disconnect and reconnect without affecting running processes.", "It automatically deletes itself when you close the tab.", "Its lifecycle begins when created and ends when deleted.", "You can stop and restart it without losing changes."], "ans": [0, 2, 3], "exp": "Closing a tab just disconnects you. The Codespace persists until explicitly deleted."}, {"q": "GitHub Copilot is free to use for which of the following groups? (Choose three)", "opts": ["Verified students", "Enterprise administrators", "Verified teachers", "Maintainers of popular open-source projects"], "ans": [0, 2, 3], "exp": "GitHub provides Copilot free for verified education users and prominent open-source maintainers."}, {"q": "In GitHub Actions, which valid events can trigger a workflow? (Choose two)", "opts": ["A commit is pushed to a branch", "A pull request is opened", "A user views the repository", "A label is read"], "ans": [0, 1], "exp": "Pushes and PR activities are the most common triggers for workflows."}, {"q": "What is the primary difference between github.dev and Codespaces?", "opts": ["github.dev provides a full VM; Codespaces does not.", "github.dev is a lightweight editor with NO compute/terminal; Codespaces provides a full VM.", "They are the exact same thing.", "github.dev costs money."], "ans": [1], "exp": "github.dev is compute-free. Codespaces provides actual cloud hardware and a terminal."}, {"q": "What happens if you close the browser tab of an active Codespace?", "opts": ["It is immediately deleted.", "It stops instantly.", "It continues running until it reaches its auto-idle timeout limit, then stops.", "It runs forever and consumes billing quotas."], "ans": [2], "exp": "To save costs, Codespaces auto-suspend after a period of inactivity (idle timeout)."}, {"q": "Which tool acts as an AI pair programmer offering autocomplete-style suggestions as you code?", "opts": ["GitHub Actions", "CodeQL", "Dependabot", "GitHub Copilot"], "ans": [3], "exp": "Copilot uses AI to suggest code snippets and entire functions based on context."}, {"q": "What is a key difference between Copilot Individual and Copilot Business?", "opts": ["Individual supports more languages.", "Business includes organization-wide policy management and does not retain code snippets for telemetry.", "Individual does not require an internet connection.", "Business is free for open source."], "ans": [1], "exp": "Copilot Business focuses on privacy (no telemetry) and admin controls."}, {"q": "In a GitHub Actions YAML file, which keyword defines the event that triggers the workflow?", "opts": ["jobs", "steps", "on", "runs-on"], "ans": [2], "exp": "The 'on' keyword specifies triggers like 'push' or 'pull_request'."}, {"q": "In GitHub Actions, what does 'runs-on' specify?", "opts": ["The trigger event.", "The operating system environment (runner) where the job will execute.", "The script to run.", "The time the job should start."], "ans": [1], "exp": "'runs-on' defines the runner, e.g., 'ubuntu-latest'."}, {"q": "Where can you find pre-built GitHub Actions created by the community?", "opts": ["GitHub Discussions", "GitHub Marketplace", "GitHub Connect", "GitHub Pages"], "ans": [1], "exp": "The Marketplace is the central hub for Actions and Apps."}, {"q": "Which information can be found in the 'Pulse' section in the Insights tab? (Choose four)", "opts": ["Amount of code line additions and deletions", "Summary of repository activity", "List of repository stars by location", "Pull requests open/merged ratio", "Unresolved conversations"], "ans": [0, 1, 3, 4], "exp": "Pulse provides a heartbeat of recent activity: additions/deletions, PR ratios, and conversations."}, {"q": "Why would a repository owner want to use Milestones? (Choose two)", "opts": ["To associate issues and pull requests with specific project phases.", "To have an overview of how much work is left to complete a goal.", "To automatically deploy code.", "To restrict repository access."], "ans": [0, 1], "exp": "Milestones group work items (Issues/PRs) together and provide a progress bar towards completion."}, {"q": "Which of these GitHub Project layouts serves as a Kanban board?", "opts": ["Table layout", "Board layout", "Roadmap layout", "List layout"], "ans": [1], "exp": "The Board layout uses columns (e.g., Todo, In Progress, Done) typical of Kanban methodology."}, {"q": "Which of these are available options when you no longer need a Project? (Choose two)", "opts": ["Close", "Delete", "Archive", "Freeze"], "ans": [0, 1], "exp": "You can 'Close' a project to keep its historical data, or 'Delete' it permanently."}, {"q": "Which GitHub Projects layout is best for visualizing tasks across a timeline?", "opts": ["Table layout", "Board layout", "Roadmap layout", "Calendar layout"], "ans": [2], "exp": "The Roadmap layout provides a Gantt-chart style view of timelines."}, {"q": "What feature allows you to generate charts (like burn-up/burn-down) for your GitHub Project?", "opts": ["Project Insights", "GitHub Actions", "Pulse", "Network Graph"], "ans": [0], "exp": "Project Insights automatically generates data visualizations based on project activity."}, {"q": "How can you automate moving cards in a GitHub Project (e.g., moving to 'Done' when a PR merges)?", "opts": ["You must write a custom GitHub Action.", "Using the built-in Project Workflows.", "Using Dependabot.", "You have to move them manually."], "ans": [1], "exp": "Projects feature built-in, UI-driven workflow automations without needing Actions code."}, {"q": "Who has the authority to set up billing or assign billing managers for an organization? (Choose two)", "opts": ["Repository Admins", "Organization Owners", "Enterprise Owners", "Team Maintainers"], "ans": [1, 2], "exp": "Billing is strictly restricted to the highest level admins: Org Owners and Enterprise Owners."}, {"q": "What are the valid 2FA methods supported by GitHub? (Choose four)", "opts": ["GitHub Mobile", "Passkey (WebAuthn)", "Email", "SMS Text Message", "TOTP Authenticator Apps"], "ans": [0, 1, 3, 4], "exp": "Email is NOT a supported 2FA method for login, as compromising the email would compromise both factors."}, {"q": "Which organization role is required as a MINIMUM to push commits directly to a repository?", "opts": ["Read", "Triage", "Write", "Maintain"], "ans": [2], "exp": "The 'Write' role grants the ability to push code. Triage manages issues, Read only clones."}, {"q": "What does the 'Secret Scanning' feature do?", "opts": ["Encrypts passwords.", "Alerts when sensitive data (tokens, API keys) are accidentally committed.", "Scans for code formatting.", "Blocks unknown IP addresses."], "ans": [1], "exp": "Secret scanning detects known token patterns to prevent credential leakage."}, {"q": "Which of these roles are available for a repository at the organization level? (Choose five)", "opts": ["Admin", "Maintain", "Write", "Triage", "Read", "Billing"], "ans": [0, 1, 2, 3, 4], "exp": "The standard repository roles in an org are Read, Triage, Write, Maintain, and Admin."}, {"q": "What does Dependabot do?", "opts": ["It automatically closes stale issues.", "It analyzes code for formatting errors.", "It monitors repository dependencies for security vulnerabilities and opens PRs to update them.", "It blocks malicious IP addresses."], "ans": [2], "exp": "Dependabot handles supply-chain security by keeping packages up to date."}, {"q": "Which tool uses semantic analysis to treat code like data, querying it to find complex security vulnerabilities?", "opts": ["CodeQL", "Dependabot", "Secret Scanning", "GitHub Actions"], "ans": [0], "exp": "CodeQL is the engine behind GitHub Advanced Security's code scanning feature."}, {"q": "What does a Branch Protection Rule allow you to enforce?", "opts": ["Require pull request reviews before merging.", "Require CI status checks to pass before merging.", "Prevent force pushes to the branch.", "All of the above."], "ans": [3], "exp": "Branch protection rules safeguard critical branches by enforcing strict workflows."}, {"q": "What is the purpose of a SECURITY.md file?", "opts": ["To block unauthorized users.", "To provide instructions on how external researchers should securely report vulnerabilities to the maintainers.", "To configure CodeQL rules.", "To store encrypted passwords."], "ans": [1], "exp": "SECURITY.md is a policy document outlining responsible disclosure procedures."}, {"q": "What does Enterprise Managed Users (EMUs) allow an organization to do?", "opts": ["Create unlimited public repos.", "Manage user accounts and authentication entirely through an external Identity Provider (like Azure AD or Okta).", "Bypass billing limits.", "Host GitHub locally."], "ans": [1], "exp": "EMUs give enterprises complete lifecycle control over user accounts via SSO."}, {"q": "What is an 'Internal' repository?", "opts": ["A repository visible only to the creator.", "An enterprise-only repository visibility setting that makes code visible to all enterprise members but hidden from the public.", "A repository used to host GitHub Actions.", "A private repository with external collaborators."], "ans": [1], "exp": "Internal visibility is key for InnerSource, sharing code securely across the company."}, {"q": "What is 'InnerSource'?", "opts": ["GitHub's open-source projects.", "Using open-source practices (collaboration, PRs) inside a private organization's boundaries.", "A local version of Git.", "A paid support tier."], "ans": [1], "exp": "InnerSource breaks down corporate silos by letting internal teams contribute to each other's code."}, {"q": "What is the primary purpose of GitHub Sponsors?", "opts": ["To run advertisements.", "To fund open-source developers and maintainers directly.", "To pay for GitHub Actions.", "To hire developers."], "ans": [1], "exp": "Sponsors is the built-in funding mechanism for the open-source community."}, {"q": "If an open-source maintainer abandons a project, what is the standard mechanism for the community to keep it alive?", "opts": ["Transfer ownership to GitHub.", "Fork the repository and continue development in the new fork.", "Buy it from Marketplace.", "The project is locked forever."], "ans": [1], "exp": "Forking ensures the code lives on and a new community can rally around the new hub."}, {"q": "Where can you discover and install third-party tools, Apps, and Actions?", "opts": ["GitHub Marketplace", "GitHub Connect", "GitHub Insights", "GitHub Sponsors"], "ans": [0], "exp": "The Marketplace is the central store for extending GitHub's capabilities."}, {"q": "If you want to contribute to a public repository where you do not have write access, what must you do first?", "opts": ["Create a branch.", "Fork the repository.", "Request Write access from support.", "Clone the main branch and push directly."], "ans": [1], "exp": "Forking creates a personal copy where you have write access, allowing you to make changes and submit a PR."}, {"q": "What is the purpose of a CONTRIBUTING.md file?", "opts": ["To list all project sponsors.", "To provide guidelines to contributors on how to submit issues, format code, and open pull requests.", "To define the software license.", "To track dependencies."], "ans": [1], "exp": "CONTRIBUTING.md sets the rules of engagement for interacting with the project."}, {"q": "What does 'Starring' a repository do?", "opts": ["It automatically forks it.", "It adds it to a list of favorites and shows appreciation to the maintainers.", "It gives you write access.", "It sends an email to the owner."], "ans": [1], "exp": "Stars are bookmarks and a metric of a repository's popularity."}, {"q": "What is the function of the GitHub 'Explore' tab?", "opts": ["To search your local code.", "To discover trending open-source projects, collections, and developers.", "To manage your billing.", "To configure organization settings."], "ans": [1], "exp": "Explore is a discovery tool for finding interesting projects across the GitHub community."}, {"q": "What does 'GitHub Connect' do?", "opts": ["Connects your mobile phone to your PC.", "Allows a self-hosted GitHub Enterprise Server to securely share data and features (like Dependabot) with GitHub Enterprise Cloud.", "Connects your repo to AWS.", "It is an API for chatbots."], "ans": [1], "exp": "Connect bridges on-premise servers with cloud-exclusive features."}];
+    // Include the 60 unique questions
+    const questionsBank = [
+        {"q": "What is the primary function of the 'Staging Area' (Index) in Git?", "opts": ["It acts as a cloud backup.", "It stores what will go into your NEXT commit snapshot.", "It holds deleted files.", "It automatically syncs to GitHub."], "ans": [1], "exp": "The staging area prepares the specific files that will be included in the next commit."},
+        {"q": "What happens if a private repository is made public?", "opts": ["It loses commit history.", "Anyone can view and fork it, and push protection rules might change.", "External collaborators are removed.", "It cannot be made private again."], "ans": [1], "exp": "Making a repo public exposes the history and code to the world."},
+        {"q": "Which of the following describes the difference between a personal account and an organization account? (Choose two)", "opts": ["Personal accounts only allow public repos.", "Organization accounts can have multiple owners.", "Personal accounts belong to a single user.", "Organizations require Enterprise plans."], "ans": [1, 2], "exp": "Personal accounts represent individuals. Organizations represent groups of people with shared ownership."},
+        {"q": "Which pricing plans allow you to create an unlimited number of public repositories? (Choose three)", "opts": ["GitHub Free", "GitHub Pro", "GitHub Team", "GitHub Enterprise Cloud"], "ans": [0, 1, 2], "exp": "All GitHub plans allow unlimited public repositories to support open-source."},
+        {"q": "Which features are provided by a GitHub Enterprise account but NOT by a Personal account? (Choose two)", "opts": ["Unlimited public repositories", "SAML Single Sign-On (SSO)", "Centralized policy management across multiple organizations", "Ability to create Issues"], "ans": [1, 2], "exp": "Enterprise accounts add SSO and centralized policy management across multiple orgs."},
+        {"q": "What is the primary difference between Git and GitHub?", "opts": ["Git is a cloud hosting service; GitHub is a command-line tool.", "Git is a distributed version control system; GitHub is a hosting platform for Git repositories.", "Git is used only for public code; GitHub is for private enterprise code.", "There is no difference; they are synonymous."], "ans": [1], "exp": "Git tracks changes locally, while GitHub hosts those repositories in the cloud."},
+        {"q": "When you clone a repository, what exactly are you downloading?", "opts": ["Only the latest version of the files in the main branch.", "A complete copy of the repository, including all files, branches, and the entire commit history.", "Only the files that you have explicitly been granted access to.", "A zip file of the repository that cannot be tracked by Git."], "ans": [1], "exp": "Cloning creates a full local copy of the repository, enabling full offline work."},
+        {"q": "What does the 'git push' command do?", "opts": ["It downloads new data from a remote repository.", "It adds files to the staging area.", "It uploads local repository content to a remote repository.", "It creates a new branch."], "ans": [2], "exp": "Pushing transfers your locally committed changes to the remote repository (like GitHub)."},
+        {"q": "What is the purpose of the `.gitignore` file?", "opts": ["To permanently delete files from the repository.", "To hide files from other collaborators.", "To specify intentionally untracked files that Git should ignore.", "To encrypt sensitive passwords before committing."], "ans": [2], "exp": ".gitignore tells Git which files (like build artifacts or local configs) should not be tracked or committed."},
+        {"q": "In which folders can you place the CODEOWNERS file for GitHub to automatically use it? (Choose three)", "opts": ["The root directory", "The `.github/` folder", "The `docs/` folder", "The `src/` folder"], "ans": [0, 1, 2], "exp": "GitHub looks for the CODEOWNERS file only in the root, docs/, or .github/ directories."},
+        {"q": "Which of these are actions you can do with Repository Templates? (Choose two)", "opts": ["Delete all repos created from a template", "Create a new repository from a template", "Create a template from an existing repository", "Automatically sync updates from the template to child repos"], "ans": [1, 2], "exp": "You can create a new repo from a template, or mark an existing repo as a template."},
+        {"q": "Can you change a gist from public to secret after creating it?", "opts": ["Yes, anytime.", "No, a public gist cannot be made secret.", "Only with Pro.", "Only within 24 hours."], "ans": [1], "exp": "Once a gist is public, it might have been cloned or viewed. You must create a new secret gist."},
+        {"q": "What is the maximum number of items (repositories or gists) you can pin to your GitHub profile?", "opts": ["3", "4", "6", "10"], "ans": [2], "exp": "You can pin up to 6 items to showcase on your profile."},
+        {"q": "If a repository is 'Private', who can view its contents?", "opts": ["Anyone on the internet.", "Only the repository owner and users they explicitly invite as collaborators.", "All users within the same geographic region.", "Anyone with a GitHub Pro account."], "ans": [1], "exp": "Private repositories restrict access strictly to the owner and invited collaborators."},
+        {"q": "Where do you manage repository-specific features like disabling Issues or Projects?", "opts": ["Account Settings", "Repository Settings", "Organization Settings", "Enterprise Settings"], "ans": [1], "exp": "Features specific to a single repository are managed within that repository's Settings tab."},
+        {"q": "Which of the following is true about GitHub Wikis?", "opts": ["They can only be edited via the web interface.", "They do not support Markdown formatting.", "Every Wiki is a Git repository itself and can be cloned locally.", "They are only available on Enterprise plans."], "ans": [2], "exp": "Under the hood, a GitHub Wiki is just a Git repository, allowing you to clone, edit, and push changes."},
+        {"q": "Which of these statements about 'Saved Replies' are true? (Choose two)", "opts": ["They are reusable comments for issues and pull requests.", "They are automated bot responses.", "You manage them in your account settings.", "They require GitHub Actions."], "ans": [0, 2], "exp": "Saved replies are personal, reusable text snippets managed in your account settings."},
+        {"q": "What is a Draft Pull Request?", "opts": ["A PR approved by code owners.", "A PR indicating work in progress that CANNOT be merged yet.", "A PR that failed CI checks.", "A template for PRs."], "ans": [1], "exp": "Draft PRs signal that the code is not ready for review and disable the merge button."},
+        {"q": "When working with Pull Requests, what is the 'Base' branch?", "opts": ["The branch containing your new changes.", "The target branch you want to merge your changes INTO.", "The upstream fork.", "The oldest branch."], "ans": [1], "exp": "The Base branch is the destination. The Compare branch contains your new changes."},
+        {"q": "Which of the following can you use to enforce a specific format when users submit bug reports? (Choose two)", "opts": ["Issue Templates (Markdown)", "Project Boards", "Issue Forms (YAML)", "CODEOWNERS"], "ans": [0, 2], "exp": "Both Markdown templates and YAML forms are used to structure bug reports."},
+        {"q": "What happens when you 'Convert to Issue' a GitHub Discussion?", "opts": ["The discussion is deleted.", "A new issue is created, and a link connects it to the original discussion.", "The discussion is archived and locked.", "It converts all comments to code commits."], "ans": [1], "exp": "It bridges community ideation into an actionable development task while keeping the link."},
+        {"q": "What is the difference between an Issue and a Discussion?", "opts": ["Issues are for actionable tasks and bug tracking; Discussions are for open-ended community conversations.", "Issues support Markdown; Discussions do not.", "Discussions can be assigned to users; Issues cannot.", "There is no functional difference."], "ans": [0], "exp": "Issues are for tracking work items, while Discussions are for Q&A and ideas."},
+        {"q": "What happens when a reviewer selects 'Request Changes' on a Pull Request?", "opts": ["The PR is immediately closed.", "The PR is converted into an Issue.", "The PR cannot be merged (if branch protection is on) until the reviewer approves the changes.", "The author's commit history is reverted."], "ans": [2], "exp": "Requesting changes blocks the merge to ensure the code meets the reviewer's standards."},
+        {"q": "Which merge strategy combines all commits from the feature branch into a single, new commit on the base branch?", "opts": ["Create a merge commit", "Rebase and merge", "Squash and merge", "Fast-forward merge"], "ans": [2], "exp": "Squashing takes multiple commits and condenses them into one clean commit on the main branch."},
+        {"q": "How can you use 'Slash Commands' in an Issue or PR comment?", "opts": ["Type '/' to execute GitHub Actions.", "Type '/' to open a menu for quickly inserting Markdown structures like tables and task lists.", "Type '/' to delete the comment.", "Type '/' to close the Issue."], "ans": [1], "exp": "Slash commands provide a quick UI for inserting complex Markdown elements."},
+        {"q": "What is an Issue Template?", "opts": ["A script that automatically creates issues.", "A Markdown file that provides default text/structure for users opening a new issue.", "A YAML file used for CI/CD.", "A branch specifically for tracking bugs."], "ans": [1], "exp": "Issue templates guide contributors on what information to provide when reporting a bug or requesting a feature."},
+        {"q": "How do you mention a user or a team in a GitHub comment to send them a notification?", "opts": ["#username", "!username", "@username", "$username"], "ans": [2], "exp": "The @ symbol is used to tag and notify users or teams."},
+        {"q": "What feature allows you to link a Pull Request to an Issue so that the Issue automatically closes when the PR is merged?", "opts": ["Using keywords like 'Fixes #123' in the PR description.", "GitHub Actions", "Dependabot", "Webhooks"], "ans": [0], "exp": "Using keywords like 'Closes', 'Fixes', or 'Resolves' followed by the issue number automates closing."},
+        {"q": "What does a 'Draft' release in GitHub signify?", "opts": ["The code is compiled but not tested.", "The release notes are being prepared and it is not yet publicly visible to users.", "It is a beta version of the software.", "It is an automated nightly build."], "ans": [1], "exp": "Draft releases allow maintainers to prepare release notes privately before publishing."},
+        {"q": "Which of these can you customize in a Codespaces `.devcontainer/devcontainer.json` file? (Choose three)", "opts": ["Operating system or base image", "Billing details", "Shell configuration", "VS Code extensions to install"], "ans": [0, 2, 3], "exp": "The devcontainer file configures the environment (OS, shell, extensions), not billing."},
+        {"q": "Which of these statements regarding GitHub Codespaces lifecycle are true? (Choose three)", "opts": ["You can disconnect and reconnect without affecting running processes.", "It automatically deletes itself when you close the tab.", "Its lifecycle begins when created and ends when deleted.", "You can stop and restart it without losing changes."], "ans": [0, 2, 3], "exp": "Closing a tab just disconnects you. The Codespace persists until explicitly deleted."},
+        {"q": "GitHub Copilot is free to use for which of the following groups? (Choose three)", "opts": ["Verified students", "Enterprise administrators", "Verified teachers", "Maintainers of popular open-source projects"], "ans": [0, 2, 3], "exp": "GitHub provides Copilot free for verified education users and prominent open-source maintainers."},
+        {"q": "In GitHub Actions, which valid events can trigger a workflow? (Choose two)", "opts": ["A commit is pushed to a branch", "A pull request is opened", "A user views the repository", "A label is read"], "ans": [0, 1], "exp": "Pushes and PR activities are the most common triggers for workflows."},
+        {"q": "What is the primary difference between github.dev and Codespaces?", "opts": ["github.dev provides a full VM; Codespaces does not.", "github.dev is a lightweight editor with NO compute/terminal; Codespaces provides a full VM.", "They are the exact same thing.", "github.dev costs money."], "ans": [1], "exp": "github.dev is compute-free. Codespaces provides actual cloud hardware and a terminal."},
+        {"q": "What happens if you close the browser tab of an active Codespace?", "opts": ["It is immediately deleted.", "It stops instantly.", "It continues running until it reaches its auto-idle timeout limit, then stops.", "It runs forever and consumes billing quotas."], "ans": [2], "exp": "To save costs, Codespaces auto-suspend after a period of inactivity (idle timeout)."},
+        {"q": "Which tool acts as an AI pair programmer offering autocomplete-style suggestions as you code?", "opts": ["GitHub Actions", "CodeQL", "Dependabot", "GitHub Copilot"], "ans": [3], "exp": "Copilot uses AI to suggest code snippets and entire functions based on context."},
+        {"q": "What is a key difference between Copilot Individual and Copilot Business?", "opts": ["Individual supports more languages.", "Business includes organization-wide policy management and does not retain code snippets for telemetry.", "Individual does not require an internet connection.", "Business is free for open source."], "ans": [1], "exp": "Copilot Business focuses on privacy (no telemetry) and admin controls."},
+        {"q": "In a GitHub Actions YAML file, which keyword defines the event that triggers the workflow?", "opts": ["jobs", "steps", "on", "runs-on"], "ans": [2], "exp": "The 'on' keyword specifies triggers like 'push' or 'pull_request'."},
+        {"q": "In GitHub Actions, what does 'runs-on' specify?", "opts": ["The trigger event.", "The operating system environment (runner) where the job will execute.", "The script to run.", "The time the job should start."], "ans": [1], "exp": "'runs-on' defines the runner, e.g., 'ubuntu-latest'."},
+        {"q": "Where can you find pre-built GitHub Actions created by the community?", "opts": ["GitHub Discussions", "GitHub Marketplace", "GitHub Connect", "GitHub Pages"], "ans": [1], "exp": "The Marketplace is the central hub for Actions and Apps."},
+        {"q": "Which information can be found in the 'Pulse' section in the Insights tab? (Choose four)", "opts": ["Amount of code line additions and deletions", "Summary of repository activity", "List of repository stars by location", "Pull requests open/merged ratio", "Unresolved conversations"], "ans": [0, 1, 3, 4], "exp": "Pulse provides a heartbeat of recent activity: additions/deletions, PR ratios, and conversations."},
+        {"q": "Why would a repository owner want to use Milestones? (Choose two)", "opts": ["To associate issues and pull requests with specific project phases.", "To have an overview of how much work is left to complete a goal.", "To automatically deploy code.", "To restrict repository access."], "ans": [0, 1], "exp": "Milestones group work items (Issues/PRs) together and provide a progress bar towards completion."},
+        {"q": "Which of these GitHub Project layouts serves as a Kanban board?", "opts": ["Table layout", "Board layout", "Roadmap layout", "List layout"], "ans": [1], "exp": "The Board layout uses columns (e.g., Todo, In Progress, Done) typical of Kanban methodology."},
+        {"q": "Which of these are available options when you no longer need a Project? (Choose two)", "opts": ["Close", "Delete", "Archive", "Freeze"], "ans": [0, 1], "exp": "You can 'Close' a project to keep its historical data, or 'Delete' it permanently."},
+        {"q": "Which GitHub Projects layout is best for visualizing tasks across a timeline?", "opts": ["Table layout", "Board layout", "Roadmap layout", "Calendar layout"], "ans": [2], "exp": "The Roadmap layout provides a Gantt-chart style view of timelines."},
+        {"q": "What feature allows you to generate charts (like burn-up/burn-down) for your GitHub Project?", "opts": ["Project Insights", "GitHub Actions", "Pulse", "Network Graph"], "ans": [0], "exp": "Project Insights automatically generates data visualizations based on project activity."},
+        {"q": "How can you automate moving cards in a GitHub Project (e.g., moving to 'Done' when a PR merges)?", "opts": ["You must write a custom GitHub Action.", "Using the built-in Project Workflows.", "Using Dependabot.", "You have to move them manually."], "ans": [1], "exp": "Projects feature built-in, UI-driven workflow automations without needing Actions code."},
+        {"q": "Who has the authority to set up billing or assign billing managers for an organization? (Choose two)", "opts": ["Repository Admins", "Organization Owners", "Enterprise Owners", "Team Maintainers"], "ans": [1, 2], "exp": "Billing is strictly restricted to the highest level admins: Org Owners and Enterprise Owners."},
+        {"q": "What are the valid 2FA methods supported by GitHub? (Choose four)", "opts": ["GitHub Mobile", "Passkey (WebAuthn)", "Email", "SMS Text Message", "TOTP Authenticator Apps"], "ans": [0, 1, 3, 4], "exp": "Email is NOT a supported 2FA method for login, as compromising the email would compromise both factors."},
+        {"q": "Which organization role is required as a MINIMUM to push commits directly to a repository?", "opts": ["Read", "Triage", "Write", "Maintain"], "ans": [2], "exp": "The 'Write' role grants the ability to push code. Triage manages issues, Read only clones."},
+        {"q": "What does the 'Secret Scanning' feature do?", "opts": ["Encrypts passwords.", "Alerts when sensitive data (tokens, API keys) are accidentally committed.", "Scans for code formatting.", "Blocks unknown IP addresses."], "ans": [1], "exp": "Secret scanning detects known token patterns to prevent credential leakage."},
+        {"q": "Which of these roles are available for a repository at the organization level? (Choose five)", "opts": ["Admin", "Maintain", "Write", "Triage", "Read", "Billing"], "ans": [0, 1, 2, 3, 4], "exp": "The standard repository roles in an org are Read, Triage, Write, Maintain, and Admin."},
+        {"q": "What does Dependabot do?", "opts": ["It automatically closes stale issues.", "It analyzes code for formatting errors.", "It monitors repository dependencies for security vulnerabilities and opens PRs to update them.", "It blocks malicious IP addresses."], "ans": [2], "exp": "Dependabot handles supply-chain security by keeping packages up to date."},
+        {"q": "Which tool uses semantic analysis to treat code like data, querying it to find complex security vulnerabilities?", "opts": ["CodeQL", "Dependabot", "Secret Scanning", "GitHub Actions"], "ans": [0], "exp": "CodeQL is the engine behind GitHub Advanced Security's code scanning feature."},
+        {"q": "What does a Branch Protection Rule allow you to enforce?", "opts": ["Require pull request reviews before merging.", "Require CI status checks to pass before merging.", "Prevent force pushes to the branch.", "All of the above."], "ans": [3], "exp": "Branch protection rules safeguard critical branches by enforcing strict workflows."},
+        {"q": "What is the purpose of a SECURITY.md file?", "opts": ["To block unauthorized users.", "To provide instructions on how external researchers should securely report vulnerabilities to the maintainers.", "To configure CodeQL rules.", "To store encrypted passwords."], "ans": [1], "exp": "SECURITY.md is a policy document outlining responsible disclosure procedures."},
+        {"q": "What does Enterprise Managed Users (EMUs) allow an organization to do?", "opts": ["Create unlimited public repos.", "Manage user accounts and authentication entirely through an external Identity Provider (like Azure AD or Okta).", "Bypass billing limits.", "Host GitHub locally."], "ans": [1], "exp": "EMUs give enterprises complete lifecycle control over user accounts via SSO."},
+        {"q": "What is an 'Internal' repository?", "opts": ["A repository visible only to the creator.", "An enterprise-only repository visibility setting that makes code visible to all enterprise members but hidden from the public.", "A repository used to host GitHub Actions.", "A private repository with external collaborators."], "ans": [1], "exp": "Internal visibility is key for InnerSource, sharing code securely across the company."},
+        {"q": "What is 'InnerSource'?", "opts": ["GitHub's open-source projects.", "Using open-source practices (collaboration, PRs) inside a private organization's boundaries.", "A local version of Git.", "A paid support tier."], "ans": [1], "exp": "InnerSource breaks down corporate silos by letting internal teams contribute to each other's code."},
+        {"q": "What is the primary purpose of GitHub Sponsors?", "opts": ["To run advertisements.", "To fund open-source developers and maintainers directly.", "To pay for GitHub Actions.", "To hire developers."], "ans": [1], "exp": "Sponsors is the built-in funding mechanism for the open-source community."},
+        {"q": "If an open-source maintainer abandons a project, what is the standard mechanism for the community to keep it alive?", "opts": ["Transfer ownership to GitHub.", "Fork the repository and continue development in the new fork.", "Buy it from Marketplace.", "The project is locked forever."], "ans": [1], "exp": "Forking ensures the code lives on and a new community can rally around the new hub."},
+        {"q": "Where can you discover and install third-party tools, Apps, and Actions?", "opts": ["GitHub Marketplace", "GitHub Connect", "GitHub Insights", "GitHub Sponsors"], "ans": [0], "exp": "The Marketplace is the central store for extending GitHub's capabilities."},
+        {"q": "If you want to contribute to a public repository where you do not have write access, what must you do first?", "opts": ["Create a branch.", "Fork the repository.", "Request Write access from support.", "Clone the main branch and push directly."], "ans": [1], "exp": "Forking creates a personal copy where you have write access, allowing you to make changes and submit a PR."},
+        {"q": "What is the purpose of a CONTRIBUTING.md file?", "opts": ["To list all project sponsors.", "To provide guidelines to contributors on how to submit issues, format code, and open pull requests.", "To define the software license.", "To track dependencies."], "ans": [1], "exp": "CONTRIBUTING.md sets the rules of engagement for interacting with the project."},
+        {"q": "What does 'Starring' a repository do?", "opts": ["It automatically forks it.", "It adds it to a list of favorites and shows appreciation to the maintainers.", "It gives you write access.", "It sends an email to the owner."], "ans": [1], "exp": "Stars are bookmarks and a metric of a repository's popularity."},
+        {"q": "What is the function of the GitHub 'Explore' tab?", "opts": ["To search your local code.", "To discover trending open-source projects, collections, and developers.", "To manage your billing.", "To configure organization settings."], "ans": [1], "exp": "Explore is a discovery tool for finding interesting projects across the GitHub community."},
+        {"q": "What does 'GitHub Connect' do?", "opts": ["Connects your mobile phone to your PC.", "Allows a self-hosted GitHub Enterprise Server to securely share data and features (like Dependabot) with GitHub Enterprise Cloud.", "Connects your repo to AWS.", "It is an API for chatbots."], "ans": [1], "exp": "Connect bridges on-premise servers with cloud-exclusive features."}
+    ];
 
     let currentQuestions = [];
     let currentIndex = 0;
-    let score = 0;
-    let answered = false;
+    // Track state for each question: selected array, and whether it was submitted (answered)
+    let userAnswers = []; 
+    let finalScore = 0;
+    let isExamFinished = false;
 
     function goHome() {
         document.getElementById('landing-page').classList.remove('hidden');
@@ -131,20 +217,29 @@
         document.getElementById('landing-page').classList.add('hidden');
         document.getElementById('result-section').classList.add('hidden');
         document.getElementById('exam-section').classList.remove('hidden');
+        document.getElementById('finish-btn').style.display = 'none';
         
-        currentQuestions = [...questionsBank].sort(() => 0.5 - Math.random());
+        currentQuestions = [...questionsBank].sort(() => 0.5 - Math.random()).slice(0, 60);
         currentIndex = 0;
-        score = 0;
-        loadQuestion();
+        finalScore = 0;
+        isExamFinished = false;
+        
+        // Initialize state for each question
+        userAnswers = currentQuestions.map(() => ({
+            selected: [],
+            isSubmitted: false,
+            isCorrect: false
+        }));
+        
+        renderQuestion();
     }
 
-    function loadQuestion() {
-        answered = false;
+    function renderQuestion() {
         const q = currentQuestions[currentIndex];
+        const state = userAnswers[currentIndex];
         const isMulti = q.ans.length > 1;
         
         document.getElementById('q-counter').innerText = `السؤال ${currentIndex + 1} / ${currentQuestions.length}`;
-        document.getElementById('score-counter').innerText = `النقاط: ${score}`;
         document.getElementById('progress').style.width = `${(currentIndex / currentQuestions.length) * 100}%`;
         
         let qHtml = q.q;
@@ -161,24 +256,73 @@
             div.className = 'option';
             div.innerText = opt;
             div.dataset.idx = idx;
-            div.onclick = () => handleOptionClick(div, isMulti);
+            
+            // Restore selection state
+            if (state.selected.includes(idx)) {
+                div.classList.add('selected');
+            }
+            
+            // If already submitted, apply visual feedback
+            if (state.isSubmitted || isExamFinished) {
+                const isCorrectAns = q.ans.includes(idx);
+                const isSelected = state.selected.includes(idx);
+                
+                if (isSelected && isCorrectAns) {
+                    div.classList.add('correct');
+                } else if (isSelected && !isCorrectAns) {
+                    div.classList.add('wrong');
+                } else if (!isSelected && isCorrectAns) {
+                    div.classList.add('missed');
+                }
+            } else {
+                div.onclick = () => handleOptionClick(div, isMulti);
+            }
+            
             container.appendChild(div);
         });
 
-        document.getElementById('explanation').style.display = 'none';
+        const expEl = document.getElementById('explanation');
         const submitBtn = document.getElementById('submit-btn');
-        submitBtn.innerText = "تأكيد الإجابة";
-        submitBtn.disabled = true;
+        
+        if (state.isSubmitted || isExamFinished) {
+            expEl.innerHTML = `<strong>التوضيح (Explanation):</strong><br>${q.exp}`;
+            expEl.style.display = 'block';
+            submitBtn.innerText = "تمت الإجابة";
+            submitBtn.disabled = true;
+        } else {
+            expEl.style.display = 'none';
+            submitBtn.innerText = "تأكيد الإجابة";
+            submitBtn.disabled = state.selected.length === 0;
+        }
+
+        // Navigation Buttons logic
+        document.getElementById('prev-btn').disabled = currentIndex === 0;
+        document.getElementById('next-btn').disabled = currentIndex === currentQuestions.length - 1;
+        
+        // Show finish button if all answered
+        const allAnswered = userAnswers.every(ans => ans.isSubmitted);
+        if (allAnswered || isExamFinished) {
+            document.getElementById('finish-btn').style.display = 'inline-block';
+        }
     }
 
     function handleOptionClick(el, isMulti) {
-        if (answered) return;
+        if (isExamFinished || userAnswers[currentIndex].isSubmitted) return;
         
+        const idx = parseInt(el.dataset.idx);
+        let selectedArr = userAnswers[currentIndex].selected;
+
         if (!isMulti) {
             document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
             el.classList.add('selected');
+            userAnswers[currentIndex].selected = [idx];
         } else {
             el.classList.toggle('selected');
+            if (el.classList.contains('selected')) {
+                selectedArr.push(idx);
+            } else {
+                userAnswers[currentIndex].selected = selectedArr.filter(i => i !== idx);
+            }
         }
 
         const hasSelection = document.querySelectorAll('.option.selected').length > 0;
@@ -187,69 +331,61 @@
 
     function handleSubmit() {
         if (document.getElementById('submit-btn').disabled) return;
+        
+        const q = currentQuestions[currentIndex];
+        const state = userAnswers[currentIndex];
+        
+        state.isSubmitted = true;
+        
+        const isFullyCorrect = JSON.stringify(state.selected.sort()) === JSON.stringify(q.ans.sort());
+        if (isFullyCorrect) {
+            state.isCorrect = true;
+            finalScore++;
+        }
+        
+        // Check if all questions are answered to show finish button
+        if (userAnswers.every(ans => ans.isSubmitted)) {
+            document.getElementById('finish-btn').style.display = 'inline-block';
+        }
 
-        if (!answered) {
-            answered = true;
-            const q = currentQuestions[currentIndex];
-            const options = document.querySelectorAll('.option');
-            
-            let userAns = [];
-            options.forEach(opt => {
-                if (opt.classList.contains('selected')) {
-                    userAns.push(parseInt(opt.dataset.idx));
-                }
-            });
-
-            const isFullyCorrect = JSON.stringify(userAns.sort()) === JSON.stringify(q.ans.sort());
-            
-            if (isFullyCorrect) {
-                score++;
-                document.getElementById('score-counter').innerText = `النقاط: ${score}`;
-            }
-
-            options.forEach(opt => {
-                const idx = parseInt(opt.dataset.idx);
-                const isSelected = opt.classList.contains('selected');
-                const isCorrectAns = q.ans.includes(idx);
-
-                if (isSelected && isCorrectAns) {
-                    opt.classList.add('correct');
-                } else if (isSelected && !isCorrectAns) {
-                    opt.classList.add('wrong');
-                } else if (!isSelected && isCorrectAns) {
-                    opt.classList.add('missed');
-                }
-            });
-
-            const expEl = document.getElementById('explanation');
-            expEl.innerHTML = `<strong>التوضيح (Explanation):</strong><br>${q.exp}`;
-            expEl.style.display = 'block';
-
-            const submitBtn = document.getElementById('submit-btn');
-            submitBtn.innerText = currentIndex === currentQuestions.length - 1 ? "إظهار النتيجة النهائية" : "انتقل للسؤال التالي";
-        } else {
+        // Automatically move to next if not at the end
+        if (currentIndex < currentQuestions.length - 1) {
             currentIndex++;
-            if (currentIndex < currentQuestions.length) {
-                loadQuestion();
-            } else {
-                showResult();
-            }
+        }
+        renderQuestion();
+    }
+    
+    function goPrev() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderQuestion();
+        }
+    }
+    
+    function goNext() {
+        if (currentIndex < currentQuestions.length - 1) {
+            currentIndex++;
+            renderQuestion();
         }
     }
 
     function showResult() {
+        isExamFinished = true;
         document.getElementById('exam-section').classList.add('hidden');
         document.getElementById('result-section').classList.remove('hidden');
         
-        const percentage = Math.round((score / currentQuestions.length) * 100);
+        // Recalculate score just to be safe
+        const calculatedScore = userAnswers.filter(ans => ans.isCorrect).length;
+        const percentage = Math.round((calculatedScore / currentQuestions.length) * 100);
+        
         document.getElementById('final-score').innerText = `${percentage}%`;
         
         const msgEl = document.getElementById('result-msg');
         if (percentage >= 65) {
-            msgEl.innerHTML = `<strong>ممتاز! لقد اجتزت الاختبار بنجاح 🎉</strong><br>أجبت على ${score} من ${currentQuestions.length} بشكل صحيح.`;
+            msgEl.innerHTML = `<strong>ممتاز! لقد اجتزت الاختبار بنجاح 🎉</strong><br>أجبت على ${calculatedScore} من ${currentQuestions.length} بشكل صحيح.`;
             document.getElementById('final-score').style.color = 'var(--success)';
         } else {
-            msg.innerHTML = `<strong>للأسف لم تجتز الاختبار ❌</strong><br>درجة النجاح هي 65%. راجع الأخطاء في وضع الـ PDF وحاول مجدداً.`;
+            msgEl.innerHTML = `<strong>للأسف لم تجتز الاختبار ❌</strong><br>درجة النجاح هي 65%. راجع الأخطاء وحاول مجدداً.`;
             document.getElementById('final-score').style.color = 'var(--danger)';
         }
     }
@@ -261,7 +397,6 @@
         const content = document.getElementById('pdf-content');
         content.innerHTML = '';
 
-        // تم إلغاء التقسيم! الآن يعرض كل الأسئلة الـ 60
         questionsBank.forEach((q, i) => {
             let isMulti = q.ans.length > 1 ? ` <span style="color:#9a6700; font-size:14px;">(اختر ${q.ans.length})</span>` : "";
             let html = `
