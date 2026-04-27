@@ -334,7 +334,7 @@
         content.innerHTML = ''; // تنظيف
 
         // عرض البنك الأساسي (بدون النسخ المكررة)
-        const uniqueQuestions = questionsBank.slice(0, 34); 
+        const uniqueQuestions = questionsBank; 
 
         uniqueQuestions.forEach((q, i) => {
             let isMulti = q.ans.length > 1 ? ` <span style="color:#9a6700; font-size:14px;">(اختر ${q.ans.length})</span>` : "";
